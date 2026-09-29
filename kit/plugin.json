@@ -1,7 +1,0 @@
-{
-  "name": "org-copilot-kit",
-  "description": "Organization working rules for Copilot: builder, reader, verifier and reviewer agents, plus a hook that blocks destructive git, rm -rf and secret reads.",
-  "version": "0.1.0",
-  "agents": "agents/",
-  "hooks": "hooks/hooks.json"
-}

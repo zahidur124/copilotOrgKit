@@ -1,0 +1,13 @@
+{
+  "project": "copilotOrgKit",
+  "risky": [],
+  "features": [
+    {
+      "id": "F1",
+      "title": "Walking skeleton",
+      "kind": "code",
+      "accept": "The app starts, answers its health check, and deploys with a rollback.",
+      "status": "todo"
+    }
+  ]
+}

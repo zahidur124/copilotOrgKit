@@ -15,5 +15,5 @@ put() {
   else mkdir -p "$(dirname "$2")" && cp "$1" "$2" && echo "installed: $2"; fi
 }
 put "$kit/templates/AGENTS.md" "$rules"
-put "$kit/templates/.github/hooks/org-deny.json" "$hooks/org-deny.json"
+put "$kit/templates/.github/hooks/deny.json" "$hooks/deny.json"
 for f in "$kit"/agents/*.agent.md; do put "$f" "$agents/$(basename "$f")"; done

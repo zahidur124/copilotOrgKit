@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "p=$(cat)\ndeny() { printf '{\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Blocked by the Copilot kit deny hook: %s\"}\\n' \"$1\"; exit 0; }\nhas() { printf '%s' \"$p\" | grep -Eq \"$1\"; }\nhas 'git push[^\"]*(--force([^-]|$)|[[:space:]]-f(\"|[[:space:]]|$))' && deny \"force-push rewrites shared history; use --force-with-lease on your own branch\"\nhas 'git reset[^\"]*--hard' && deny \"git reset --hard discards uncommitted work; commit or use git stash\"\nhas 'rm[[:space:]]+-[a-zA-Z]*(rf|fr)[a-zA-Z]*[[:space:]]+(/|~/?|\\$HOME/?|\\./?|\\.\\./?|\\*)(\"|[[:space:]]|;|&|$)' && deny \"rm -rf on a root, home or whole working directory\"\nhas '\\.env(\"|[[:space:]]|$)' && deny \"reading or writing .env files can leak secrets; use .env.example\"\nhas '(\\.pem|\\.key|id_rsa|id_ed25519|id_ecdsa)(\"|[[:space:]]|$)' && deny \"private key files are off limits\"\nexit 0",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

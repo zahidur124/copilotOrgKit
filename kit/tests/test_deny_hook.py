@@ -1,4 +1,4 @@
-"""Run the preToolUse command from templates/.github/hooks/org-deny.json exactly as Copilot does:
+"""Run the preToolUse command from templates/.github/hooks/deny.json exactly as Copilot does:
 the event JSON on stdin, a decision JSON on stdout."""
 import json
 import pathlib
@@ -6,7 +6,7 @@ import subprocess
 
 import pytest
 
-HOOKS = pathlib.Path(__file__).parent.parent / "templates" / ".github" / "hooks" / "org-deny.json"
+HOOKS = pathlib.Path(__file__).parent.parent / "templates" / ".github" / "hooks" / "deny.json"
 
 
 def decide(tool, args):

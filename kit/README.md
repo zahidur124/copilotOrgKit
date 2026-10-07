@@ -6,7 +6,7 @@ Optional agents, working rules and a safety hook for GitHub Copilot. Each develo
 |---|---|
 | `agents/*.agent.md` | 4 custom agents: builder, reader, verifier, reviewer. |
 | `templates/AGENTS.md` | Working rules: facts, scope, code, verify, git. |
-| `templates/.github/hooks/org-deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. |
+| `templates/.github/hooks/deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. |
 | `install.sh` | Copies the files above to where Copilot reads them. |
 | `tests/live_check.sh` | Runs the latest Copilot CLI against these files: agents load, hook blocks, verifier reports FAIL. `.github/workflows/live-check.yml` runs it weekly. |
 

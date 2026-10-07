@@ -1,27 +1,25 @@
-# Org Copilot kit
+# Copilot kit
 
-This folder is your organization's `.github-private` repository. Edit files here only; everything else is copied from here.
+Optional agents, working rules and a safety hook for GitHub Copilot. Each developer chooses whether to install them; nothing is pushed to any repo.
 
-| Path | What it is | How it reaches developers |
-|---|---|---|
-| `agents/*.agent.md` | 4 custom agents: builder, reader, verifier, reviewer. | GitHub serves them to every repo in the org from this repo's latest commit. Nobody installs anything. |
-| `templates/AGENTS.md` | Working rules: facts, scope, code, verify, git. AGENTS.md is an open format that Copilot and other coding agents read. | `sync` opens a PR in each repo. |
-| `templates/.github/hooks/org-deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. | `sync` opens a PR in each repo. The cloud agent reads hooks only from the repo it works in. |
-| `scripts/sync.sh` | Copies `templates/` into every repo in the org and opens a PR where they differ. | Run by `.github/workflows/sync.yml` when `templates/` changes on main. |
-| `tests/live_check.sh` | Runs the latest Copilot CLI against these files: agents load, hook blocks, verifier reports FAIL. | Run by `.github/workflows/live-check.yml` weekly and on every push. A red run means a Copilot release changed a format. |
+| Path | What it is |
+|---|---|
+| `agents/*.agent.md` | 4 custom agents: builder, reader, verifier, reviewer. |
+| `templates/AGENTS.md` | Working rules: facts, scope, code, verify, git. |
+| `templates/.github/hooks/org-deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. |
+| `install.sh` | Copies the files above to where Copilot reads them. |
+| `tests/live_check.sh` | Runs the latest Copilot CLI against these files: agents load, hook blocks, verifier reports FAIL. `.github/workflows/live-check.yml` runs it weekly. |
 
-## Set up once
+## Install
 
-1. Create the repository `<org>/.github-private` and push this folder's contents to it.
-2. Add 2 Actions secrets to it:
-   - `ORG_SYNC_TOKEN`: a GitHub App token or fine-grained token with contents and pull-requests write on the org's repos.
-   - `COPILOT_CLI_TOKEN`: a fine-grained personal access token with the "Copilot Requests" permission.
-3. In the org's Copilot settings, allow custom agents from this repository.
-4. Run the `sync` workflow once by hand. It opens one PR per repo.
+Clone this repo, then pick one:
 
-## Change something
+- `./install.sh user` copies everything into your Copilot config (`~/.copilot`, or `$COPILOT_HOME`). It applies in every repo you open, and nothing is committed anywhere. The rules go in `~/.copilot/copilot-instructions.md`.
+- `./install.sh repo [dir]` copies everything into one repo (default: the current directory): `AGENTS.md`, `.github/hooks/` and `.github/agents/`. You decide whether to commit them.
 
-Edit the file here and merge to main. `sync` opens PRs in the repos for template changes. `live-check` confirms Copilot still reads everything.
+A file that already exists is skipped and listed, never overwritten. To update, delete the old file and run the install again.
+
+To remove, delete the installed files it listed.
 
 ## Limits
 

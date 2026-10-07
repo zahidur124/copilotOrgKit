@@ -7,8 +7,7 @@ repo=$(mktemp -d)
 cd "$repo"
 git init -q && echo one > f.txt && git add f.txt
 git -c user.name=t -c user.email=t@t commit -qm init
-mkdir -p .github/agents && cp "$kit"/agents/*.agent.md .github/agents/
-cp -R "$kit/templates/." .
+"$kit/install.sh" repo . >/dev/null
 echo two > f.txt
 ask() { copilot -s --allow-all-tools --no-ask-user "$@" 2>&1; }
 fails=0

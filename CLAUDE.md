@@ -1,6 +1,6 @@
 # copilotOrgKit
 
-How work is done here: `~/Desktop/Projects/claude/workflow/WORKFLOW.md` (the why behind each step).
+How work is done here: the general rules in `~/Desktop/Projects/CLAUDE.md`, and the steps below.
 State lives in `features.json`, `git log` and `records/`. Run `wf status` at the start of every session.
 
 ## Pick the size first
@@ -27,13 +27,12 @@ State lives in `features.json`, `git log` and `records/`. Run `wf status` at the
 1. `wf status`, then `./run smoke` once F1 is done. Fix a red smoke before anything else.
 2. Branch `f<N>-<slug>`.
 3. Tests first, in a fresh context: dispatch a subagent with only the row's `accept` text and
-   `docs/design.md`. It writes tests under `tests/`. Then run `wf red F<N> <test files>`: it refuses tests
-   that already pass, then locks them in `tests.lock`.
-4. Write the code. Never edit a locked test; CI fails the push if you do.
+   `docs/design.md`. It writes tests under `tests/`.
+4. Write the code, building until `./run test <the row's test files>` passes.
 5. Push, then `wf ci`. It waits for the CI run of that exact commit.
-6. If the diff touches a `risky` path, run `wf review F<N>` (a fresh `claude -p` reviewer).
-7. `wf done F<N>`. It refuses unless the tests were locked, CI is green on HEAD, the review passed where
-   needed, a `live` row has its observations, and a `result` row carries `--owner '<owner's words>'`.
+6. If the diff touches a `risky` path, read that diff yourself before step 7.
+7. `wf done F<N>`. It marks the row done and records the commit, the CI result on HEAD and the owner's words given with `--owner '<owner's words>'`.
+   A `live` row has its observations first; a `result` row is given `--owner`.
 8. Push, merge to main with `--ff-only`, push main, delete the branch.
 - A `result` row: build the pipeline that produces the number, record each run's numbers in `records/`,
   show them to the owner. Do not tune toward a target number.

@@ -5,7 +5,7 @@ State lives in `features.json`, `git log` and `records/`. Run `wf status` at the
 
 ## Pick the size first
 - One-sentence change (you can say the diff in one sentence): branch, change, `./run check`, push,
-  `wf ci`, merge to main, push, `wf release`. No spec, no new feature row.
+  `wf ci`, merge to main, push. No spec, no new feature row.
 - Anything bigger: the stages below, in order. A stage is done when its output exists.
 
 ## 1. Plan (owner and agent, one sitting)
@@ -39,8 +39,7 @@ State lives in `features.json`, `git log` and `records/`. Run `wf status` at the
 - If the same fix is corrected twice, stop and start a fresh session.
 
 ## 4. Release
-- `wf release` on main: CI green on HEAD, then `./run deploy`. A failed health check rolls back and the
-  command fails. Every release is written to `records/releases.jsonl`.
+- `./run deploy` is the release step and rolls back on a failed health check; a session does not run it.
 - The owner tries the released product. A problem they find becomes a new `todo` row with a failing test.
 
 ## Records

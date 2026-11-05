@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The one entry point for this project's checks. CI, wf and people all call these names.
+# The one entry point for this project's checks. CI and people all call these names.
 # Fill in each command at the Design stage; keep the names.
 set -uo pipefail
 cd "$(dirname "$0")"

@@ -27,7 +27,7 @@ At session end, merge each finished branch (its tests and the quick check pass) 
 A Feature, or any task that runs past one sitting, opens by writing `docs/goal.md`: the goal in the user's words, the check that shows it is done, what is out of scope, and one progress line per finished step. Read it again after a compaction or a resume, because an instruction given only in chat can drop out of the compaction summary.
 
 ## Delegation
-<Which agent does each kind of work, what the session does itself, and which agents commit or push. State whether this replaces the global `worker` and `researcher` lines in the user-level working rules.>
+<Which agent does each kind of work, what the session does itself, and which agents commit or push. State whether this replaces the Delegation lines in the user-level working rules (`~/.copilot/copilot-instructions.md`).>
 
 ## Rules
 <Rules fixing failures the user named.>

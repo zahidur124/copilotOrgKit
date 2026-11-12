@@ -7,7 +7,8 @@ set -euo pipefail
 kit=$(cd "$(dirname "$0")" && pwd)
 case "${1:-}" in
   user) dest=${COPILOT_HOME:-$HOME/.copilot}; rules=$dest/copilot-instructions.md; hooks=$dest/hooks; agents=$dest/agents; skills=$dest/skills ;;
-  repo) dest=$(cd "${2:-.}" && pwd); rules=$dest/AGENTS.md; hooks=$dest/.github/hooks; agents=$dest/.github/agents; skills=$dest/.github/skills ;;
+  repo) dest=$(cd "${2:-.}" && pwd); rules=$dest/AGENTS.md; hooks=$dest/.github/hooks; agents=$dest/.github/agents; skills=$dest/.github/skills
+    [ -e "$dest/.git" ] || echo "warning: $dest is not a git repository root; Copilot reads .github/hooks/ only at the root" >&2 ;;
   *) echo "usage: $0 user | repo [dir]" >&2; exit 2 ;;
 esac
 put() {

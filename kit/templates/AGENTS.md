@@ -37,4 +37,4 @@
 ## Git
 - Commit in small steps. Each commit message says why, not only what.
 - Stage files by path, never `git add -A`.
-- Never force-push a shared branch or run `git reset --hard`. An org hook blocks both.
+- Never force-push a shared branch or run `git reset --hard`. The kit's deny hook blocks both where it is installed.

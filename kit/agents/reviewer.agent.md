@@ -18,7 +18,7 @@ You are `reviewer`. Assume the diff is wrong until proven right. Run the rule ch
 
 Surface coverage, when `scope` or `framework` is on the Checks line: enumerate every surface the diff touches (files, configs, services, schedulers, remote copies, callers); each has a verification row in done_when or the diff's test evidence. A surface with neither → REJECT naming it.
 
-No background work: never run a task in the background or with `&`; run every measurement synchronously in one call. Notifications for backgrounded work go to the parent, not to you.
+No background work: never run a task in the background or with `&`; run every measurement synchronously in one call, so its output is in front of you when you report.
 
 Scratchpad: a temporary folder outside the repo holds intermediates only — never a deliverable.
 

@@ -4,7 +4,7 @@ Optional agents, skills, working rules and a safety hook for GitHub Copilot. Eac
 
 | Path | What it is |
 |---|---|
-| `agents/*.agent.md` | 6 custom agents: worker, researcher, reader, verifier, reviewer, builder. |
+| `agents/*.agent.md` | 6 custom agents: worker, kit-researcher, reader, verifier, kit-reviewer, builder. The two `kit-` names keep them apart from Copilot CLI's built-in `research` and `code-review` agents. |
 | `skills/*/SKILL.md` | 3 skills: draft-from-examples, spec-interview, session-capture. |
 | `templates/AGENTS.md` | Working rules: facts, scope, code, verify, delegation, rules files, git. |
 | `templates/project/AGENTS.md` | Starter rules for one project. Not installed: copy it into a repo as `AGENTS.md` and fill in the `<placeholders>`. |
@@ -38,7 +38,7 @@ To remove, delete the installed files it listed.
 - A hook that times out (5 s here) lets the tool call through. A hook that crashes denies it.
 - The hook matches text. It stops mistakes, not a determined person.
 - It checks the git and `rm` rules only on commands, so editing a file that mentions `git reset --hard` is allowed. The `.env` and key rules apply to every tool, so it also blocks editing `.env` files, not only reading them.
-- The hook has only a `bash` command, which runs on macOS, Linux and the cloud agent. Copilot runs a hook's `powershell` command on Windows, and this hook has none.
+- The hook has a `bash` command, which runs on macOS, Linux and the cloud agent, and a `powershell` command with the same rules, which Copilot runs on Windows. The `powershell` command is written for Windows PowerShell 5.1 and PowerShell 7 but has not yet been run on Windows, so test it there before relying on it. The cloud agent ignores `powershell` entries.
 - The reader agent's "no advice" and "read-only commands" rules are only instructions. Asked directly, it still gave advice in testing. Its tool list has no edit tool, but it keeps the shell, so nothing but the instruction stops a command that writes.
-- The cloud agent has no web tool, so `researcher` and `worker` cannot search the web there.
-- When the main agent hands work to one of these agents in Copilot CLI, that agent does not see `AGENTS.md` or `copilot-instructions.md`. The brief has to carry what it needs.
+- The cloud agent has no web tool, so `kit-researcher` and `worker` cannot search the web there.
+- Every agent here sets `include-custom-instructions: true`, so when the main agent hands it work in Copilot CLI it still reads the repo's own `AGENTS.md` and `.github/copilot-instructions.md`. Copilot's reference names only repository instruction files, so after a `user` install the rules in `~/.copilot/copilot-instructions.md` may not reach a handed-off agent, and a session started with `--no-custom-instructions` gives no agent any rules. In those cases the brief has to carry what the agent needs.

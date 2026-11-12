@@ -9,7 +9,7 @@ Web and docs research, prior art and vendor comparisons. It covers `<research fo
 
 ## Task shape
 1. Run `grep -ril '<topic>' <research folder>`. Reuse only a hit whose `Ask:` line equals the user's words verbatim.
-2. Hand the task to the `researcher` agent with the user's words verbatim and the report path.
+2. Hand the task to the `kit-researcher` agent with the user's words verbatim and the report path.
 3. Reply with the conclusion. Never list the sources.
 
 ## Git

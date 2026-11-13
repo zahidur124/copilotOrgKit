@@ -1,9 +1,10 @@
 """Shared code for install-user.py and install-repo.py. Run one of those, not this file.
 
-Each script asks what it needs when it runs in a terminal: which agents and skills, whether to replace
-files that differ from the kit, and a last go-ahead after showing what it will do. A flag answers a
-question in advance, so that question is not asked. Without a terminal (a pipe, CI) or with --yes,
-nothing is asked: every agent and skill is installed and files that differ are skipped unless --update.
+Each script asks what it needs when it runs in a terminal: which agents and which packs of skills and rules
+files, whether to replace files that differ from the kit, and a last go-ahead after showing what it will do. A
+flag answers a question in advance, so that question is not asked. Without a terminal (a pipe, CI) or with
+--yes, nothing is asked: every agent is installed, the packs are the ones Enter would pick, and files that
+differ are skipped unless --update.
 
 Runs on Windows, macOS and Linux with Python 3.8 or later; needs nothing outside the standard library.
 """
@@ -18,6 +19,27 @@ KIT = Path(__file__).resolve().parent
 RULES = KIT / "templates" / "AGENTS.md"
 PROJECT_TEMPLATE = KIT / "templates" / "project" / "AGENTS.md"
 HOOK = KIT / "templates" / ".github" / "hooks" / "deny.json"
+# Rules files copied from github/awesome-copilot: instructions/<name>.instructions.md, which Copilot loads for the files
+# their applyTo matches. Their MIT licence is installed beside them.
+INSTRUCTIONS = KIT / "instructions"
+INSTRUCTIONS_LICENSE = INSTRUCTIONS / "awesome-copilot-LICENSE.txt"
+# The packs the scripts offer, in the order they are listed: (name, description, skills, rules files). Picking several
+# installs the union. install-repo.py installs a pack's skills and rules files; install-user.py only its skills.
+CODE_SKILLS = ["build-and-test", "write-tests", "dependency-upgrade", "api-contract-check"]
+PACKS = [
+    ("code", "Code, for every stack: build and test, write tests, upgrade dependencies, check API changes",
+     CODE_SKILLS, []),
+    ("java", "Java: the code pack, plus Spring Boot rules for .java files", CODE_SKILLS, ["springboot"]),
+    ("node", "Node: the code pack, plus NestJS rules for .ts, .js and .json files", CODE_SKILLS, ["nestjs"]),
+    ("scala", "Scala: the code pack and the sbt-and-play skill, plus Scala 2 rules for .scala and build.sbt files",
+     CODE_SKILLS + ["sbt-and-play"], ["scala2"]),
+    ("python", "Python: the code pack (no Python rules yet)", CODE_SKILLS, []),
+    ("flutter", "Flutter: the code pack, plus Dart and Flutter rules for .dart files", CODE_SKILLS, ["dart-n-flutter"]),
+    ("documents", "Documents: read Word, PDF, PowerPoint and Excel files, write Word and PowerPoint, work on PDFs and CSV files",
+     ["read-documents", "csv-analysis", "pptx", "docx", "pdf"], []),
+    ("planning", "Planning and writing: interview for a spec, draft from examples, capture a session, set up a repo's AGENTS.md",
+     ["spec-interview", "draft-from-examples", "session-capture", "setup-project"], []),
+]
 # Kit files a skill copies into a project. They are installed inside the skill's own folder, so the skill finds
 # them wherever it is installed and does not depend on where the kit was cloned.
 SKILL_FILES = {
@@ -63,13 +85,17 @@ def make_parser(description, usage_examples):
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     agents = ", ".join(n for n, _ in kit_items("agent"))
     skills = ", ".join(n for n, _ in kit_items("skill"))
+    packs = ", ".join(p[0] for p in PACKS)
     parser.add_argument("--agents", metavar="NAMES", help=f"comma-separated agents to install, or all, or none. Kit agents: {agents}")
-    parser.add_argument("--skills", metavar="NAMES", help=f"comma-separated skills to install, or all, or none. Kit skills: {skills}")
-    parser.add_argument("--update", action="store_true", help="replace installed agent, skill and hook files that differ from the kit, keeping each old one as <name>.bak")
+    parser.add_argument("--packs", metavar="NAMES", help=f"comma-separated packs to install, or all, or none. Kit packs: {packs}. "
+                                                         "install-repo.py installs a pack's skills and rules files, install-user.py only its skills")
+    parser.add_argument("--skills", metavar="NAMES", help="comma-separated single skills, or all, or none. Alone, it installs only these "
+                                                          f"skills and asks no pack question; with --packs, these are added to the packs' skills. Kit skills: {skills}")
+    parser.add_argument("--update", action="store_true", help="replace installed agent, skill, rules and hook files that differ from the kit, keeping each old one as <name>.bak")
     parser.add_argument("--rules", choices=("merge", "overwrite"),
                         help="when the rules file (copilot-instructions.md or AGENTS.md) already exists: merge updates only its "
                              "agents section (the default), overwrite replaces it with the kit's; either keeps the old one as .bak")
-    parser.add_argument("--yes", "-y", action="store_true", help="ask nothing: use the flags given and install everything else")
+    parser.add_argument("--yes", "-y", action="store_true", help="ask nothing: use the flags given, all agents, and the packs Enter would pick")
     return parser
 
 
@@ -90,10 +116,13 @@ def ask_yes_no(question, default):
         print("Please answer y or n.")
 
 
-def _parse_names(text, names):
-    """Turn 'all', 'none', '1,3' or 'worker,reader' into a list of names, or raise ValueError."""
+def _parse_names(text, names, empty=None):
+    """Turn 'all', 'none', '1,3' or 'worker,reader' into a list of names, or raise ValueError. An empty answer
+    gives empty, or all names when empty is None."""
     text = text.strip().lower()
-    if text in ("", "all"):
+    if text == "":
+        return list(names if empty is None else empty)
+    if text == "all":
         return list(names)
     if text == "none":
         return []
@@ -140,10 +169,69 @@ def choose(kind, flag_value, interactive, parser):
         return chosen
 
 
-def choose_agents_and_skills(args, interactive, parser):
-    agent_names = choose("agent", args.agents, interactive, parser)
-    skill_names = choose("skill", args.skills, interactive, parser)
-    return agent_names, skill_names
+def pack_contents(pack_names):
+    """Return (skills, rules files) for the packs named: the union of theirs, skills in kit order."""
+    chosen = [p for p in PACKS if p[0] in pack_names]
+    skills = [n for n, _ in kit_items("skill") if any(n in p[2] for p in chosen)]
+    rules = []
+    for p in chosen:
+        rules += [r for r in p[3] if r not in rules]
+    return skills, rules
+
+
+def _ask_packs(default, notes):
+    names = [p[0] for p in PACKS]
+    width = min(shutil.get_terminal_size().columns, 120) - 1
+    print("\nPacks in the kit:")
+    for i, (name, desc, _, _) in enumerate(PACKS, 1):
+        lines = textwrap.wrap(desc, width - 19, max_lines=2, placeholder=" ...") or [""]
+        print(f"  {i:>2}. {name:<12} {lines[0]}")
+        for more in lines[1:]:
+            print(" " * 19 + more)
+    for note in notes:
+        print(textwrap.fill(note, width))
+    shown = "all" if default == names else ", ".join(default) if default else "none"
+    while True:
+        answer = input(f"Which packs? Enter for {shown}; or numbers or names such as 1,3; or all; or none: ")
+        try:
+            return _parse_names(answer, names, default)
+        except ValueError as bad:
+            print(f"There is no pack {bad}. Use the numbers 1 to {len(names)} or the names listed.")
+
+
+def choose_packs(args, interactive, parser, default, notes, with_rules):
+    """Return (skills, rules files) to install. --skills alone gives only those skills and no rules files. Otherwise
+    the packs come from --packs, the pack question (Enter gives default), or default when nothing is asked, and
+    --skills adds to their skills. notes are printed under the list of packs. Without with_rules no rules file is
+    returned."""
+    skill_names = [n for n, _ in kit_items("skill")]
+    pack_names = [p[0] for p in PACKS]
+    single = []
+    if args.skills is not None:
+        try:
+            single = _parse_names(args.skills, skill_names)
+        except ValueError as bad:
+            parser.error(f"unknown skill: {bad}; choose from {', '.join(skill_names)}")
+        if args.packs is None:
+            return single, []
+    if args.packs is not None:
+        try:
+            packs = _parse_names(args.packs, pack_names)
+        except ValueError as bad:
+            parser.error(f"unknown pack: {bad}; choose from {', '.join(pack_names)}")
+    elif interactive:
+        packs = _ask_packs(default, notes)
+    else:
+        packs = list(default)
+    packs = [n for n in pack_names if n in packs]
+    skills, rules = pack_contents(packs)
+    skills = [n for n in skill_names if n in skills or n in single]
+    rules = rules if with_rules else []
+    print(f"  Packs: {', '.join(packs) if packs else 'none'}")
+    print(f"  Skills: {', '.join(skills) if skills else 'none'}")
+    if with_rules:
+        print(f"  Rules files: {', '.join(rules) if rules else 'none'}")
+    return skills, rules
 
 
 def agents_after_install(agents_dir, agent_names):
@@ -198,12 +286,15 @@ def rules_file(path, template, heading, agents, indent, args, interactive):
     return merged.encode("utf-8"), f"merge: update only its \"{heading[3:]}\" section"
 
 
-def file_list(extra, base, agent_names, skill_names):
-    """Return [(content bytes, destination)] for the extra (source, destination) pairs and the chosen agents
-    and skills. base is the folder that holds agents/ and skills/."""
-    agents, skills = base / "agents", base / "skills"
+def file_list(extra, base, agent_names, skill_names, rule_names=()):
+    """Return [(content bytes, destination)] for the extra (source, destination) pairs and the chosen agents,
+    skills and rules files. base is the folder that holds agents/, skills/ and instructions/."""
+    agents, skills, instructions = base / "agents", base / "skills", base / "instructions"
     files = list(extra)
     files += [(KIT / "agents" / f"{n}.agent.md", agents / f"{n}.agent.md") for n in agent_names]
+    files += [(INSTRUCTIONS / f"{n}.instructions.md", instructions / f"{n}.instructions.md") for n in rule_names]
+    if rule_names:
+        files.append((INSTRUCTIONS_LICENSE, instructions / INSTRUCTIONS_LICENSE.name))
     for n in skill_names:
         folder = KIT / "skills" / n
         files.append((folder / "SKILL.md", skills / n / "SKILL.md"))

@@ -1,11 +1,11 @@
 ---
-name: scala2
-description: Scala 2.12/2.13 coding conventions following the Databricks style guide, covering simple code, naming, syntax, language features, type safety, collections, performance, concurrency, testing and sbt configuration. Use when writing or reviewing Scala 2 code and build files (*.scala, build.sbt, build.sc).
+description: 'Scala 2.12/2.13 programming language coding conventions and best practices following Databricks style guide for functional programming, type safety, and production code quality.'
+applyTo: '**/*.scala, **/build.sbt, **/build.sc'
 ---
 
 # Scala Best Practices
 
-Copied from github/awesome-copilot (instructions/scala2.instructions.md), MIT licence; see LICENSE.txt in this folder.
+Copied from github/awesome-copilot (instructions/scala2.instructions.md), MIT licence; see awesome-copilot-LICENSE.txt in this folder.
 
 Based on the [Databricks Scala Style Guide](https://github.com/databricks/scala-style-guide)
 

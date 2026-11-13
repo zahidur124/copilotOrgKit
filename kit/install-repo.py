@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Set up one repository for Copilot: the safety hook, the agents and skills it uses, and its own AGENTS.md.
-You decide whether to commit the files.
+"""Set up one repository for Copilot: the safety hook, the agents it uses, the skills and rules files of the packs
+it uses, and its own AGENTS.md. You decide whether to commit the files.
 
-The hook, agents and skills go in .github/hooks/, .github/agents/ and .github/skills/. AGENTS.md is the kit's
+The hook, agents, skills and rules files go in .github/hooks/, .github/agents/, .github/skills/ and
+.github/instructions/. The packs suggested are the ones for the stacks whose build files are in the repo. AGENTS.md is the kit's
 project template with <placeholders>, written when the repo has no AGENTS.md; the setup-project skill fills it
 in. Its "Agents in this repo" section names the job of each kit agent in .github/agents/; when AGENTS.md
 already exists, the script asks whether to merge (update only that section) or overwrite it with the template. The kit's general working rules are not
 installed here: each developer gets them from install-user.py.
 """
+import fnmatch
 import os
 import sys
 from pathlib import Path
@@ -16,12 +18,69 @@ import installer as kit
 
 TEMPLATE_TITLE = "# <project name>"
 AGENTS_HEADING = "## Agents in this repo"
+# Build files that show a repo's stack, and the pack each one suggests. They are looked for at the root and up to
+# two folders down, skipping SKIP_DIRS and hidden folders such as .git and .dart_tool.
+STACK_FILES = [
+    ("pom.xml", "java"), ("build.gradle", "java"), ("build.gradle.kts", "java"),
+    ("package.json", "node"),
+    ("build.sbt", "scala"),
+    ("pyproject.toml", "python"), ("requirements*.txt", "python"), ("setup.py", "python"),
+    ("pubspec.yaml", "flutter"),
+]
+SKIP_DIRS = {"node_modules", "build", "target", "dist", "out", "venv", "env", "__pycache__", "site-packages", "vendor", "Pods"}
+FLUTTER_PLATFORM_DIRS = {"android", "ios", "macos", "linux", "windows", "web"}
+ALWAYS_SUGGESTED =["documents", "planning"]
 
 EXAMPLES = """examples:
-  python install-repo.py                          asks which repo, agents and skills, then installs
-  python install-repo.py ~/code/my-service        installs into that repo, asking about agents and skills
-  python install-repo.py ~/code/my-service --yes  installs everything there without asking
+  python install-repo.py                          asks which repo, agents and packs, then installs
+  python install-repo.py ~/code/my-service        installs into that repo, asking about agents and packs
+  python install-repo.py ~/code/my-service --yes  installs all agents and the suggested packs there without asking
+  python install-repo.py . --packs java,documents --yes
+  python install-repo.py . --packs scala --skills csv-analysis --yes   the scala pack plus one more skill
+  python install-repo.py . --skills build-and-test --yes               only that skill (no packs), and all agents
   python install-repo.py . --update --yes         brings an earlier install in this repo up to date"""
+
+
+def detect_stacks(root):
+    """Return {pack name: [build files found, relative to root]} for the stacks whose build files are in the repo."""
+    found = {}
+
+    def walk(folder, depth):
+        try:
+            entries = sorted(os.scandir(folder), key=lambda e: e.name)
+        except OSError:
+            return
+        # A Flutter app's platform folders hold Gradle and other build files of its own; they are not a Java service.
+        skip = SKIP_DIRS | (FLUTTER_PLATFORM_DIRS if any(e.name == "pubspec.yaml" for e in entries) else set())
+        for entry in entries:
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    if depth < 2 and not entry.name.startswith(".") and entry.name not in skip:
+                        walk(entry.path, depth + 1)
+                    continue
+            except OSError:
+                continue
+            for pattern, pack in STACK_FILES:
+                if fnmatch.fnmatchcase(entry.name, pattern):
+                    found.setdefault(pack, []).append(Path(entry.path).relative_to(root).as_posix())
+
+    walk(root, 0)
+    return found
+
+
+def suggest_packs(root):
+    """Return (suggested packs, a note saying what was found): code, documents, planning and the detected stacks'
+    packs, or only documents and planning when no stack is found."""
+    found = detect_stacks(root)
+    stacks = [p[0] for p in kit.PACKS if p[0] in found]
+    if not stacks:
+        return ALWAYS_SUGGESTED, ("No build files for Java, Node, Scala, Python or Flutter were found, so the suggestion "
+                                  "leaves out the code pack.")
+    shown = []
+    for pack in stacks:
+        files = found[pack]
+        shown.append(f"{pack} ({', '.join(files[:3])}{f', and {len(files) - 3} more' if len(files) > 3 else ''})")
+    return ["code"] + stacks + ALWAYS_SUGGESTED, "Build files found: " + "; ".join(shown) + "."
 
 
 
@@ -104,11 +163,17 @@ def main():
     if agents_md.exists() and agents_md.read_text(encoding="utf-8").startswith(TEMPLATE_TITLE):
         print("AGENTS.md is still the unfilled project template; ask Copilot to \"set up this repo for Copilot\" to fill it in.")
 
-    agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
+    agent_names = kit.choose("agent", args.agents, interactive, parser)
+    suggested, found_note = suggest_packs(dest)
+    if not interactive and args.packs is None and args.skills is None:
+        print(found_note)
+    skill_names, rule_names = kit.choose_packs(args, interactive, parser, suggested,
+                                               ["A pack's rules files go in .github/instructions/ and load for matching files.",
+                                                found_note], with_rules=True)
     content, plan = kit.rules_file(agents_md, kit.PROJECT_TEMPLATE.read_text(encoding="utf-8"), AGENTS_HEADING,
                                    kit.agents_after_install(dest / ".github" / "agents", agent_names), "", args, interactive)
     extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json"), (content, agents_md)]
-    files = kit.file_list(extra, dest / ".github", agent_names, skill_names)
+    files = kit.file_list(extra, dest / ".github", agent_names, skill_names, rule_names)
     from_template = not agents_md.exists() or (plan or "").startswith("overwrite")
     fill_in = ("Ask Copilot in the repository to \"set up this repo for Copilot\" so the setup-project skill fills in AGENTS.md's "
                "<placeholders>. " if from_template and "setup-project" in skill_names else

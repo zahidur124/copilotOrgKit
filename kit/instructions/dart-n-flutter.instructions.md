@@ -1,11 +1,11 @@
 ---
-name: dart-n-flutter
-description: Dart and Flutter best practices from Effective Dart and the Flutter app architecture recommendations, covering style, documentation, usage, design, and ViewModel, data model and navigation patterns. Use when writing or reviewing Dart or Flutter code (*.dart).
+description: 'Instructions for writing Dart and Flutter code following the official recommendations.'
+applyTo: '**/*.dart'
 ---
 
 # Dart and Flutter
 
-Copied from github/awesome-copilot (instructions/dart-n-flutter.instructions.md), MIT licence; see LICENSE.txt in this folder.
+Copied from github/awesome-copilot (instructions/dart-n-flutter.instructions.md), MIT licence; see awesome-copilot-LICENSE.txt in this folder.
 
 Best practices recommended by the Dart and Flutter teams. These instructions were taken from [Effective Dart](https://dart.dev/effective-dart) and [Architecture Recommendations](https://docs.flutter.dev/app-architecture/recommendations).
 

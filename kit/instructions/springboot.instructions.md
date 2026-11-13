@@ -1,11 +1,11 @@
 ---
-name: springboot
-description: Spring Boot coding guidelines for Java covering constructor injection, externalized configuration, feature-based package layout, stateless services, SLF4J logging, input validation, and how to build and verify with Maven or Gradle. Use when writing or reviewing Spring Boot code in Java (*.java, pom.xml, build.gradle) in a project that uses Spring Boot.
+description: 'Guidelines for building Spring Boot base applications'
+applyTo: '**/*.java'
 ---
 
 # Spring Boot Development
 
-Copied from github/awesome-copilot (instructions/springboot.instructions.md), MIT licence; see LICENSE.txt in this folder.
+Copied from github/awesome-copilot (instructions/springboot.instructions.md), MIT licence; see awesome-copilot-LICENSE.txt in this folder.
 
 Apply these instructions only when the project uses Spring Boot. For Kotlin projects, see `kotlin-springboot`.
 

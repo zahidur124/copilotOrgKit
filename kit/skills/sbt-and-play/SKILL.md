@@ -5,7 +5,7 @@ description: Work in Scala services built with sbt - multi-module builds, Play F
 
 # sbt-and-play
 
-A Scala service rests on a few choices made once: the sbt and Scala versions, Akka or Pekko, Guice or compile-time DI, Futures or an effect system. Code that mixes two of them fails to compile or fails at startup, so read what the repo uses first and match it. Code style is in the `scala2` skill, running builds and tests in `build-and-test`, writing tests in `write-tests`, and version bumps in `dependency-upgrade`.
+A Scala service rests on a few choices made once: the sbt and Scala versions, Akka or Pekko, Guice or compile-time DI, Futures or an effect system. Code that mixes two of them fails to compile or fails at startup, so read what the repo uses first and match it. Code style is in the `scala2` rules file (`.github/instructions/scala2.instructions.md`, which loads for Scala and sbt files when the repo has it), running builds and tests in `build-and-test`, writing tests in `write-tests`, and version bumps in `dependency-upgrade`.
 
 Rules that hold for every step:
 - **Match the repo.** Same actor library, DI style, JSON library and effect system as the module you are in. Never add a second of any of these.

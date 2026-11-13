@@ -1,11 +1,11 @@
 ---
-name: nestjs
-description: NestJS development standards for scalable Node.js server-side applications, covering modules and dependency injection, project structure, API patterns with DTOs, database integration, authentication, error handling, testing, configuration, performance and security. Use when writing or reviewing NestJS code and tests in TypeScript or JavaScript (*.ts, *.js, *.json, *.spec.ts, *.e2e-spec.ts).
+applyTo: '**/*.ts, **/*.js, **/*.json, **/*.spec.ts, **/*.e2e-spec.ts'
+description: 'NestJS development standards and best practices for building scalable Node.js server-side applications'
 ---
 
 # NestJS Development Best Practices
 
-Copied from github/awesome-copilot (instructions/nestjs.instructions.md), MIT licence; see LICENSE.txt in this folder.
+Copied from github/awesome-copilot (instructions/nestjs.instructions.md), MIT licence; see awesome-copilot-LICENSE.txt in this folder.
 
 ## Your Mission
 

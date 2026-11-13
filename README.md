@@ -18,7 +18,9 @@ You need Python 3.8 or later. Use `python3` or `py` in place of `python` if that
 - **8 agents** Copilot can hand work to: worker, kit-researcher, reader, verifier, kit-reviewer, builder, data-analyst, document-reviewer.
 - **14 skills** in packs: building and testing code, upgrading dependencies, checking API changes, reading and writing documents, analysing CSV files, and planning and writing.
 - **Language rules files** for Spring Boot, Scala, NestJS and Flutter, installed per repo.
-- **A safety hook** that blocks force-push, `git reset --hard`, wide `rm -rf`, and `.env` and private key files, installed per repo.
+- **A safety hook** that blocks destructive git and `rm` commands and access to secrets, installed per repo.
+
+To pick an agent yourself, ask for it by name ("use the verifier agent"), or use `/agent` in Copilot CLI or the agents menu in VS Code.
 
 [kit/README.md](kit/README.md) describes each file and its limits. [INSTALL.md](INSTALL.md) explains the install questions, packs and flags.
 
@@ -27,10 +29,8 @@ You need Python 3.8 or later. Use `python3` or `py` in place of `python` if that
 | Where you use Copilot | `install-user.py` (working rules, agents, skills) | `install-repo.py` (hook, agents, skills, rules files, `AGENTS.md`) |
 |---|---|---|
 | Copilot CLI | Yes | Yes |
-| VS Code Copilot Chat, with the Copilot harness (the default for new sessions) | Yes | Yes |
+| VS Code Copilot Chat, with the Copilot harness (the default; not the older Local harness) | Yes | Yes |
 | Copilot cloud agent on GitHub.com | No: it reads only the repo | Yes, once the files are merged into the default branch |
-
-VS Code's older Local harness reads agents and instructions from the VS Code profile, not from `~/.copilot`, and is removed in February 2027. Use the Copilot harness.
 
 ## Check that it works
 
@@ -39,10 +39,6 @@ Don't ask Copilot which rules it has. It gets the text of each instruction file 
 - **Copilot CLI:** run `copilot instruction list` in the repo. It lists every instruction file a session there loads.
 - **VS Code:** open the References list under a reply. It names the files that were attached.
 - **That the rules are followed:** add a line such as "When asked for the kit codeword, answer HERON-7731" to the installed rules file, ask Copilot for the kit codeword, then remove the line.
-
-## Use an agent
-
-Copilot picks an agent itself, from the agent's description and the lines the install wrote about which job goes to which agent, or does the work itself. To choose one yourself, ask for it by name, for example "use the verifier agent", or pick it with `/agent` in Copilot CLI or the agents menu in VS Code.
 
 ## Update or remove
 

@@ -71,7 +71,7 @@ Table of the kit contents, one row per part, with the folder path in a code font
 - Same files either way
 
 **Speaker notes**
-Run the script from the `kit/` folder of a clone. User mode puts the rules in `~/.copilot/copilot-instructions.md`, agents in `~/.copilot/agents/`, skills in `~/.copilot/skills/`, and the hook in `~/.copilot/hooks/`. Repo mode puts `AGENTS.md` at the repo root, and the hook, agents and skills under `.github/`. Nothing is committed for you in either mode. If `COPILOT_HOME` is set, user mode uses it instead of `~/.copilot`.
+Run the script from the `kit/` folder of a clone. User mode puts the rules in `~/.copilot/copilot-instructions.md`, agents in `~/.copilot/agents/`, skills in `~/.copilot/skills/`, and the hook in `~/.copilot/hooks/`. Repo mode puts the rules in `.github/instructions/kit.instructions.md`, and the hook, agents and skills under `.github/`; the repo's own `AGENTS.md` is left alone. Nothing is committed for you in either mode. If `COPILOT_HOME` is set, user mode uses it instead of `~/.copilot`.
 
 **Visual**
 Two-column table: rows for rules, hook, agents, skills; columns for user and repo mode, with the exact paths. Below it, the two commands in a code block.
@@ -239,7 +239,7 @@ What the audience should take away: the skill does the thinking about steps and 
 **On the slide**
 - Working rules Copilot reads at the start of a session
 - Six groups: The task, Claims, Changes, Handing work to agents, Git, Instruction files
-- Installed as `AGENTS.md` (repo) or `copilot-instructions.md` (user)
+- Installed as `kit.instructions.md` (repo) or `copilot-instructions.md` (user)
 
 **Speaker notes**
 Define working rules: a plain Markdown file of instructions. Go through the groups in one line each. The task: finish what was asked, and name extras as "Also: ..." instead of doing them; take the likeliest reading and act, and ask only when the readings lead to different work. Claims: say done, fixed or passing only about what you ran and saw work, and never make a failure look resolved. There is no web search, so check against the code, the lockfile or the installed package, and say you do not know if it is not there. Changes: new code reads like the code around it, and keep secrets and customer data out of code, logs and commits. Handing work to agents: hand work to `worker` when you only need the result, and put any rule it must follow in the brief. Git: review what is staged, never force-push a shared branch or reset away work that is not yours. Instruction files: change a rule only when the user asks for it.
@@ -257,7 +257,7 @@ Table with two columns, "Group" and "One-line rule", six rows, taken from sectio
 - Not installed. Copy by hand, fill in the `<placeholders>`
 
 **Speaker notes**
-The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how to end a session, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, with the `Source:` line listing the files and commands the report used, and how to commit. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. If you installed in repo mode, an `AGENTS.md` already exists, so you need to merge by hand. The files do not say how to combine them.
+The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how to end a session, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, with the `Source:` line listing the files and commands the report used, and how to commit. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. A repo-mode install does not use `AGENTS.md`, so the template and the kit's rules sit side by side and Copilot reads both.
 
 **Visual**
 Two side-by-side code excerpts, each about six lines, with the placeholders highlighted: from the project template, "The repo's check command: `<check command>`", and from the research template, "Reports: `research/<camelCase+DDMMYY>/report.md`".

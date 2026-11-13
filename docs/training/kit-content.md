@@ -9,7 +9,7 @@ Last checked against the repo on 2026-11-12 (commit `c95c3f2` and later, includi
 - **Agent (custom agent):** a Markdown file ending in `.agent.md`. It has a name, a one-line description, a list of tools, and written instructions. You pick it for a job, and it works with only the tools listed.
 - **Tool:** something an agent is allowed to do. The tool names used here are `read` (read files), `edit` (change or create files), `execute` (run shell commands) and `search` (search files). No kit agent has a web tool, because web search is off in the organization.
 - **Skill:** a folder with one file, `SKILL.md`. It has a name, a description, and numbered steps. Copilot can use it when your request matches its description.
-- **Working rules:** a plain Markdown file of instructions that Copilot reads at the start of a session. In a repo it is called `AGENTS.md`. In your own Copilot config it is called `copilot-instructions.md`.
+- **Working rules:** a plain Markdown file of instructions that Copilot reads at the start of a session. In a repo, the kit's rules are installed as `.github/instructions/kit.instructions.md`, and the project's own rules go in `AGENTS.md`; Copilot reads both. In your own Copilot config it is called `copilot-instructions.md`.
 - **Hook:** a small command that Copilot runs at a set moment. The kit's hook runs before every tool call and can refuse the call.
 - **Brief:** the written task you hand to an agent. Most kit agents expect a brief with named fields (Goal, Done when, Context, Files, Report path).
 - **Done when:** a command plus the output it must print. It is how a task proves it is finished.
@@ -50,7 +50,7 @@ Run `install.py` from the `kit/` folder of a clone of this repo. It needs Python
 |---|---|---|
 | Applies to | Every repo you open | One repo only |
 | Target folder | `~/.copilot`, or `$COPILOT_HOME` if set | `dir`, default is the current directory |
-| Working rules | `~/.copilot/copilot-instructions.md` | `<dir>/AGENTS.md` |
+| Working rules | `~/.copilot/copilot-instructions.md` | `<dir>/.github/instructions/kit.instructions.md` |
 | Hook | `~/.copilot/hooks/deny.json` | `<dir>/.github/hooks/deny.json` |
 | Agents | `~/.copilot/agents/<name>.agent.md` | `<dir>/.github/agents/<name>.agent.md` |
 | Skills | `~/.copilot/skills/<name>/SKILL.md` | `<dir>/.github/skills/<name>/SKILL.md` |
@@ -203,7 +203,7 @@ Each skill is one file, `skills/<name>/SKILL.md`, with a `name` and a `descripti
 
 ## 5. The working rules (`templates/AGENTS.md`)
 
-Title: "How to work in this organization's repositories". An opening line says the rules apply in every Copilot CLI and VS Code agent session on this machine, and that where a repository's own `AGENTS.md` differs, you follow the repository. It then has six groups. Installed as `AGENTS.md` (repo mode) or `~/.copilot/copilot-instructions.md` (user mode).
+Title: "How to work in this organization's repositories". An opening line says the rules apply in every Copilot CLI and VS Code agent session on this machine, and that where a repository's own `AGENTS.md` differs, you follow the repository. It then has six groups. Installed as `.github/instructions/kit.instructions.md` (repo mode, with an `applyTo: "**"` header so it applies to every file) or `~/.copilot/copilot-instructions.md` (user mode).
 
 | Group | What it says, in short |
 |---|---|
@@ -296,7 +296,7 @@ These are points a presenter may be asked about.
 3. **The rules name `worker` only.** `templates/AGENTS.md` (Handing work to agents) names the `worker` agent and no other. `templates/project/AGENTS.md` (Delegation) is a blank for which agent does each kind of work, and asks the user to state whether it replaces "the Delegation lines in the user-level working rules". The user-level rules no longer have a section called Delegation; the matching section is Handing work to agents.
 4. **Where `kit-researcher` writes its report.** The agent's description says the Report path is "a file under the project's docs/", and its text defaults to `docs/research/kit-researcher-<task-slug>.md`. The research template puts reports in `research/<camelCase+DDMMYY>/report.md`, which is not under `docs/`. The template's path is given in the brief, so the two can work together, but the files do not say so.
 5. **`kit-researcher` says it stops if a field is missing, yet allows no Report path.** The description says it "stops without searching if a field is missing" and also allows "no Report path". The body supplies a default path, so a missing Report path does not stop it.
-6. **Repo-mode install and the project template both want `AGENTS.md`.** `python install.py repo` writes the working rules to `<dir>/AGENTS.md`. The README says to copy `templates/project/AGENTS.md` into a repo "as `AGENTS.md`". If the install already created the file, the template cannot be copied over it without overwriting, and a later `--update` would replace the filled-in template with the working rules (keeping it as `AGENTS.md.bak`). The files do not say how to combine them. User mode has no such clash.
+6. **Repo installs from before November 2026 put the rules in `AGENTS.md`.** The script now writes them to `.github/instructions/kit.instructions.md` and never touches `AGENTS.md`, so the project template can be copied there. In a repo whose `AGENTS.md` still starts with the kit's rules title, the script prints a warning to delete it, because otherwise Copilot reads the rules twice.
 7. **"Never commit" against commit steps.** All six agents say "Never commit". `session-capture` ends with "Then commit them", and the project template's Delegation section asks which agents "commit or push". Read together: the main session commits and the agents do not. The files never say this plainly.
 8. **The README does not say how to pick an agent or call a skill in Copilot.** It does not name the command or menu. The removed test script `kit/tests/live_check.sh` used `copilot --agent <name>`, but that is a deleted file, not documentation.
 9. **Terms the agents use without defining them.** The agent files mention a "findings file" with `@hash` rows, `done_when`, "the requester", and "Proposed decision:" lines. These come from a working style the kit does not explain. They only matter if the repo uses them.

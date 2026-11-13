@@ -5,5 +5,5 @@ __pycache__/
 # macOS
 .DS_Store
 
-# Training decks built from docs/training/, kept out of the repo
+# Slide decks, kept out of the repo
 *.pptx

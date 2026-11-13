@@ -2,6 +2,20 @@
 
 Optional agents, skills, working rules, language rules files and a safety hook for GitHub Copilot. Each developer chooses whether to install them; nothing is pushed to any repo.
 
+## Quick start
+
+You need Python 3.8 or later. Use `python3` or `py` in place of `python` if that is how Python starts on your machine.
+
+1. Clone this repo: `git clone https://github.com/zahidur124/copilotOrgKit.git`, then `cd copilotOrgKit`.
+2. Install for yourself, once: `python install-user.py`. Press Enter at each question to take everything. The rules, agents and skills then apply in every repo you open.
+3. Set up a repo, once per repo: `python install-repo.py ~/code/my-service`, with the path to your repo. Press Enter to take the suggestions. This adds the safety hook, agents, skills and an `AGENTS.md` to that repo.
+4. Open that repo in Copilot and ask it to "set up this repo for Copilot". It fills in the `AGENTS.md` from the repo's code and asks you what it cannot work out.
+5. Start a new Copilot session so it loads the files. Commit the repo's new files if your team should have them.
+
+The rest of this README says what each file is, what the questions mean, and the flags for running without questions.
+
+## What is in the kit
+
 The kit's files are in the `kit/` folder, and the paths in the table below are inside it. The two install scripts are in the repo's root folder (see Install).
 
 | Path in `kit/` | What it is |

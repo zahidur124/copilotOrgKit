@@ -15,7 +15,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-KIT = Path(__file__).resolve().parent
+KIT = Path(__file__).resolve().parent / "kit"
 RULES = KIT / "templates" / "AGENTS.md"
 PROJECT_TEMPLATE = KIT / "templates" / "project" / "AGENTS.md"
 HOOK = KIT / "templates" / ".github" / "hooks" / "deny.json"

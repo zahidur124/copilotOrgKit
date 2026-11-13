@@ -2,7 +2,7 @@
 
 Each script asks what it needs when it runs in a terminal: which agents and which packs of skills and rules
 files, whether to replace files that differ from the kit, and a last go-ahead after showing what it will do. A
-flag answers a question in advance, so that question is not asked. Without a terminal (a pipe, CI) or with
+flag answers a question in advance, so that question is not asked. Without a terminal (for example a pipe) or with
 --yes, nothing is asked: every agent is installed, the packs are the ones Enter would pick, and files that
 differ are skipped unless --update.
 

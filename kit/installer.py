@@ -125,8 +125,6 @@ def choose(kind, flag_value, interactive, parser):
 
 def choose_agents_and_skills(args, interactive, parser):
     agent_names = choose("agent", args.agents, interactive, parser)
-    if "worker" not in agent_names:
-        print("note: the working rules hand work to the worker agent, which you are not installing", file=sys.stderr)
     skill_names = choose("skill", args.skills, interactive, parser)
     return agent_names, skill_names
 

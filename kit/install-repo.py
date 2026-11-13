@@ -7,16 +7,36 @@ project template with <placeholders>, written only when the repo has no AGENTS.m
 it in. The kit's general working rules are not installed here: each developer gets them from install-user.py.
 """
 import os
+import re
 import sys
 from pathlib import Path
 
 import installer as kit
+
+TEMPLATE_TITLE = "# <project name>"
 
 EXAMPLES = """examples:
   python install-repo.py                          asks which repo, agents and skills, then installs
   python install-repo.py ~/code/my-service        installs into that repo, asking about agents and skills
   python install-repo.py ~/code/my-service --yes  installs everything there without asking
   python install-repo.py . --update --yes         brings an earlier install in this repo up to date"""
+
+
+def project_agents_md(agent_names):
+    """The project template, with its Delegation section holding only the job lines for the agents being installed,
+    or without that section when no agent is installed. A job line ends with the agent's name in backticks."""
+    out, section = [], None
+    for line in kit.PROJECT_TEMPLATE.read_text(encoding="utf-8").splitlines(keepends=True):
+        if line.startswith("## "):
+            section = line.strip()
+        if section == "## Delegation":
+            if not agent_names:
+                continue
+            agent = re.search(r"`([\w-]+)`\.?\s*$", line)
+            if line.startswith("  - ") and agent and agent.group(1) not in agent_names:
+                continue
+        out.append(line)
+    return ("".join(out).rstrip("\n") + "\n").encode("utf-8")
 
 
 def git_root(start):
@@ -95,15 +115,16 @@ def main():
                   + (" Then run this again to get the project template." if old.name == "AGENTS.md" else ""), file=sys.stderr)
 
     agents_md = dest / "AGENTS.md"
-    extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json")]
-    if agents_md.exists() and agents_md.read_bytes() == kit.PROJECT_TEMPLATE.read_bytes():
+    if agents_md.exists() and agents_md.read_text(encoding="utf-8").startswith(TEMPLATE_TITLE):
         print("AGENTS.md is still the unfilled project template; ask Copilot to \"set up this repo for Copilot\" to fill it in.")
     elif agents_md.exists():
-        print("AGENTS.md already exists and is left as it is; the setup-project skill can propose lines to add.")
-    else:
-        extra.append((kit.PROJECT_TEMPLATE, agents_md))
+        print("AGENTS.md already exists and is left as it is; the setup-project skill can propose lines to add, "
+              "such as Delegation lines for the agents installed here.")
 
     agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
+    extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json")]
+    if not agents_md.exists():
+        extra.append((project_agents_md(agent_names), agents_md))
     files = kit.file_list(extra, dest / ".github", agent_names, skill_names)
     fill_in = ("Ask Copilot in the repository to \"set up this repo for Copilot\" so the setup-project skill fills in AGENTS.md's "
                "<placeholders>. " if not agents_md.exists() and "setup-project" in skill_names else

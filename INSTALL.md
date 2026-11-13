@@ -7,6 +7,18 @@ The kit comes with two install scripts. They copy files to the places Copilot lo
 | `install-user.py` | Once, on your computer | Your personal rules, agents and skills | Your Copilot folder, `~/.copilot`. Works in every repo you open. Nothing is committed. |
 | `install-repo.py` | Once for each repo | The repo's notes (`AGENTS.md`), language guides, agents, skills and the safety hook | Inside that repo, in `AGENTS.md` and `.github/`. You decide whether to commit them. |
 
+```
+On your computer (~/.copilot)           In one repo
+-----------------------------           -----------
+your personal rules                     the repo's notes (AGENTS.md)
+agents                                  agents
+skills                                  skills
+                                        language guides
+                                        safety hook
+
+set up by install-user.py, once         set up by install-repo.py, once per repo
+```
+
 Language guides go only into repos, because they belong to a repo's code. Your personal rules go only into your Copilot folder, because they are yours.
 
 ## What you will see
@@ -65,7 +77,7 @@ A pack is a bundle of skills for one kind of work. A language pack also adds tha
 | `documents` | read-documents, csv-analysis, pptx, docx, pdf | none |
 | `planning`, for planning and writing | spec-interview, draft-from-examples, session-capture, setup-project | none |
 
-[kit/README.md](kit/README.md) says what each skill does.
+[kit/skills/README.md](kit/skills/README.md) says what each skill does.
 
 ## If you have installed before
 
@@ -80,6 +92,11 @@ Your personal rules (`copilot-instructions.md`) and the repo's notes (`AGENTS.md
 - **Overwrite:** replaces your file with the kit's. For a repo, that means a blank template again.
 
 Whenever a file is replaced, the old one is kept next to it with `.bak` added to its name.
+
+## Update or remove
+
+- **Update:** download the new version of this repo and run the same scripts again.
+- **Remove:** delete the files the script listed when it installed them, and any `.bak` files next to them.
 
 ## Running without questions
 

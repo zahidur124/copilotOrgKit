@@ -5,7 +5,7 @@ description: Create or edit Word (.docx) documents with python-docx, using the t
 
 # docx
 
-Needs: Python 3 with `python-docx` (`pip install python-docx`). To read an existing document you also need `markitdown` (see the `read-documents` skill). If pip is blocked, use the company's internal package mirror (`pip install --index-url <url> python-docx`; ask the platform team for the URL).
+Needs: Python 3 with `python-docx` (`pip install python-docx`). To read an existing document you also need the `read-documents` skill, whose script uses the same `python-docx` package. If pip is blocked, use the company's internal package mirror (`pip install --index-url <url> python-docx`; ask the platform team for the URL).
 
 The document is made by a script you show and run. The script opens the template or original, and saves to a new file. It never saves over the template or over the user's original.
 

@@ -13,7 +13,7 @@ The main session's task note gives the document, the checklist or policy (inline
 ## How to work
 1. Convert the document to Markdown with the `read-documents` skill, into a folder outside the repo (a `.pdf`, `.docx` or `.pptx` file cannot be read directly). Read the checklist or policy the same way if it is one of those files.
 2. Read the whole converted document, in parts if it is long, and go through the checklist one item at a time. Run the checks that need a count or a search (`rg`) rather than judging by eye.
-3. For a page number in a PDF, extract it page by page with the `pdf` skill, because the Markdown has no page breaks. A Word file has no fixed pages, so refer to a section by its heading and the paragraph or table in it. A deck is referred to by slide number.
+3. The converted PDF has a `## Page N` heading per page and a deck has `## Slide N`, so cite those numbers. A Word file has no fixed pages, so refer to a section by its heading and the paragraph or table in it.
 4. A scanned PDF has no text and this agent does not do OCR: say so and stop. Anything the conversion lost (pictures, charts, comments, tracked changes) is listed as not reviewed.
 
 ## Final message
@@ -27,7 +27,7 @@ Then what you did not review. Never describe a check you did not actually run, a
 
 ## Tools
 - Read a file, or a range of lines of it, rather than the whole file when only part is needed.
-- Convert documents with `markitdown`, writing the Markdown to a folder outside the repo; extract PDF pages with a short Python script run with `python3 -I <file>`.
+- Convert documents with the `read-documents` skill's `to_markdown.py`, run with `python3 -I`, writing the Markdown to a folder outside the repo.
 - Search: `rg`, `grep -rn`, `find`; trim piped output with `head` or `tail`.
 - Run only commands that read the document or write the converted copy. If a package is missing and pip is blocked, tell the user to use the company's internal package mirror.
 

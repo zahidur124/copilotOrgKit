@@ -37,7 +37,7 @@ Rules that hold for every step:
        pages = {n: (p.extract_text() or "") for n, p in enumerate(pdf.pages, start=1)}
    ```
 
-   Save the result to a text or Markdown file when it is long, and read the part you need. For the whole document as Markdown without page numbers, use the `read-documents` skill. Text from a multi-column page can come out in the wrong order; check against `page.extract_text(layout=True)` or crop to a column with `page.crop((x0, top, x1, bottom))`.
+   Save the result to a text or Markdown file when it is long, and read the part you need. For the whole document as Markdown with a `## Page N` heading per page, use the `read-documents` skill; this step is for when you need control over one page's text. Text from a multi-column page can come out in the wrong order; check against `page.extract_text(layout=True)` or crop to a column with `page.crop((x0, top, x1, bottom))`.
 
 3. **Extract tables.** `page.extract_tables()` returns a list of tables, each a list of rows of cell strings (`None` for an empty cell). Load one into pandas for analysis (the `csv-analysis` skill's rules apply to the data), and check the row count and the header against the page:
 

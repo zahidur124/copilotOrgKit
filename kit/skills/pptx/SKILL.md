@@ -5,13 +5,13 @@ description: Create or edit PowerPoint (.pptx) slide decks with python-pptx, sta
 
 # pptx
 
-Needs: Python 3 with `python-pptx` (`pip install python-pptx`). To read an existing deck you also need `markitdown` (see the `read-documents` skill). If pip is blocked, use the company's internal package mirror (`pip install --index-url <url> python-pptx`; ask the platform team for the URL).
+Needs: Python 3 with `python-pptx` (`pip install python-pptx`). To read an existing deck you also need the packages of the `read-documents` skill (`pip install pdfplumber python-docx python-pptx openpyxl`; only `python-pptx` is used for a deck). If pip is blocked, use the company's internal package mirror (`pip install --index-url <url> python-pptx`; ask the platform team for the URL).
 
 The deck is made by a script you show and run. The script reads the template and saves to a new file. It never saves over the template or over the user's original deck.
 
 1. **Find the template and the content.** Use the template the user names (a `.pptx` or `.potx`). With none named, look for one in the repo or in the folder the user points at, and ask if there are several. With no company template at all, say so and use python-pptx's default, which is plain; do not invent a house style. For the content, use what the user gave. A fact, figure or name you do not have goes in as `[TODO: what is needed]` on the slide, never a guess.
 
-2. **Read an existing deck first.** To edit or build on a deck, convert it with the `read-documents` skill and read the Markdown (slide numbers and speaker notes come through). Then list its layouts as in step 3. Say what the deck holds before changing it.
+2. **Read an existing deck first.** To edit or build on a deck, convert it with the `read-documents` skill and read the Markdown (each slide is a `## Slide N` section with its title, text, tables and speaker notes). Then list its layouts as in step 3. Say what the deck holds before changing it.
 
 3. **Look at the template's layouts and placeholders before writing.** python-pptx cannot open a `.potx`; if the template is one, ask the user to open it in PowerPoint and use File > Save As > PowerPoint Presentation, or convert a copy:
 

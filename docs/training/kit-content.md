@@ -42,7 +42,7 @@ What changed on 2026-11-12 (commit `c95c3f2`, "Port worker, researcher, skills a
 
 ## 2. Install
 
-Run `install.py` from the `kit/` folder of a clone of this repo. It needs Python 3.8 or later and nothing else, so it runs on Windows, macOS and Linux; start it with `python`, `python3` or `py`, whichever your machine uses. The usage is `install.py user | repo [dir] [--update] [--agents NAME,NAME]`. A missing or wrong argument prints the usage and exits with code 2.
+Run `install.py` from the `kit/` folder of a clone of this repo. It needs Python 3.8 or later and nothing else, so it runs on Windows, macOS and Linux; start it with `python`, `python3` or `py`, whichever your machine uses. The usage is `install.py user | repo [dir] [--update] [--agents NAME,NAME] [--skills NAME,NAME]`. A missing or wrong argument prints the usage and exits with code 2.
 
 ### Two modes
 
@@ -56,7 +56,7 @@ Run `install.py` from the `kit/` folder of a clone of this repo. It needs Python
 | Skills | `~/.copilot/skills/<name>/SKILL.md` | `<dir>/.github/skills/<name>/SKILL.md` |
 | Committed? | Nothing is committed anywhere | You decide whether to commit the new files |
 
-Both modes copy the same set: the working rules, the hook, all 6 agents and all 3 skills. To install only some agents, name them with `--agents`, for example `--agents worker,reader`. An unknown name stops the script and lists the agent names. Leaving out `worker` prints a note, because the working rules hand work to it. The two starter templates are never installed. Copy one by hand when you want it.
+Both modes copy the same set: the working rules, the hook, all 6 agents and all 3 skills. To install only some agents or skills, name them with `--agents` or `--skills`, for example `--agents worker,reader --skills spec-interview`. An unknown name stops the script and lists the valid names. Leaving out `worker` prints a note, because the working rules hand work to it. The two starter templates are never installed. Copy one by hand when you want it.
 
 ### Existing files: left alone unless you ask to update
 

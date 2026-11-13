@@ -4,6 +4,7 @@
   python install.py user [--update]        into your Copilot config ($COPILOT_HOME or ~/.copilot); applies to every repo you open
   python install.py repo [dir] [--update]  into one repo (default: the current directory); you decide whether to commit them
   add --agents worker,reader                to install only the agents named (default: all of them)
+  add --skills spec-interview               to install only the skills named (default: all of them)
 
 In a repo the working rules go in .github/instructions/kit.instructions.md, not AGENTS.md, so the repo's own AGENTS.md is never touched.
 
@@ -23,7 +24,7 @@ RULES = KIT / "templates" / "AGENTS.md"
 REPO_RULES_HEADER = b'---\napplyTo: "**"\n---\n\n'
 
 
-def targets(mode, repo_dir, agent_names):
+def targets(mode, repo_dir, agent_names, skill_names):
     """Return a list of (content, destination) pairs."""
     if mode == "user":
         dest = Path(os.environ.get("COPILOT_HOME") or Path.home() / ".copilot")
@@ -41,7 +42,7 @@ def targets(mode, repo_dir, agent_names):
                   "Delete AGENTS.md unless you added your own rules to it, or Copilot reads the rules twice.", file=sys.stderr)
     files = [(header + RULES.read_bytes(), rules), (KIT / "templates" / ".github" / "hooks" / "deny.json", hooks / "deny.json")]
     files += [(KIT / "agents" / f"{n}.agent.md", agents / f"{n}.agent.md") for n in agent_names]
-    files += [(f, skills / f.parent.name / "SKILL.md") for f in sorted((KIT / "skills").glob("*/SKILL.md"))]
+    files += [(KIT / "skills" / n / "SKILL.md", skills / n / "SKILL.md") for n in skill_names]
     return [(c if isinstance(c, bytes) else c.read_bytes(), d) for c, d in files]
 
 
@@ -50,22 +51,30 @@ def main():
     parser.add_argument("mode", choices=["user", "repo"])
     parser.add_argument("dir", nargs="?", default=".", help="repo mode only: the repository root (default: current directory)")
     parser.add_argument("--update", action="store_true", help="replace installed files that differ from the kit, keeping each old one as <name>.bak")
-    available = sorted(f.name[: -len(".agent.md")] for f in (KIT / "agents").glob("*.agent.md"))
-    parser.add_argument("--agents", metavar="NAME,NAME", help="install only these agents, comma-separated (default: all): " + ", ".join(available))
+    all_agents = sorted(f.name[: -len(".agent.md")] for f in (KIT / "agents").glob("*.agent.md"))
+    all_skills = sorted(f.parent.name for f in (KIT / "skills").glob("*/SKILL.md"))
+    parser.add_argument("--agents", metavar="NAME,NAME", help="install only these agents, comma-separated (default: all): " + ", ".join(all_agents))
+    parser.add_argument("--skills", metavar="NAME,NAME", help="install only these skills, comma-separated (default: all): " + ", ".join(all_skills))
     args = parser.parse_args()
     if args.mode == "user" and args.dir != ".":
         parser.error("a directory is only taken in repo mode")
-    agent_names = available
-    if args.agents is not None:
-        agent_names = [n.strip() for n in args.agents.split(",") if n.strip()]
-        unknown = [n for n in agent_names if n not in available]
-        if unknown or not agent_names:
-            parser.error(f"unknown agent: {', '.join(unknown) or '(none given)'}; choose from {', '.join(available)}")
-        if "worker" not in agent_names:
-            print("note: the working rules hand work to the worker agent, which you are not installing", file=sys.stderr)
+
+    def chosen(value, available, kind):
+        if value is None:
+            return available
+        names = [n.strip() for n in value.split(",") if n.strip()]
+        unknown = [n for n in names if n not in available]
+        if unknown or not names:
+            parser.error(f"unknown {kind}: {', '.join(unknown) or '(none given)'}; choose from {', '.join(available)}")
+        return names
+
+    agent_names = chosen(args.agents, all_agents, "agent")
+    skill_names = chosen(args.skills, all_skills, "skill")
+    if "worker" not in agent_names:
+        print("note: the working rules hand work to the worker agent, which you are not installing", file=sys.stderr)
 
     differ = 0
-    for content, dst in targets(args.mode, args.dir, agent_names):
+    for content, dst in targets(args.mode, args.dir, agent_names, skill_names):
         if not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.write_bytes(content)

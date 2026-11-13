@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Install the kit into one repository's .github folder. You decide whether to commit the files.
+"""Set up one repository for Copilot: the safety hook, the agents and skills it uses, and its own AGENTS.md.
+You decide whether to commit the files.
 
-The rules go in .github/instructions/kit.instructions.md, not AGENTS.md, so the repo's own AGENTS.md is never
-touched. The hook, agents and skills go in .github/hooks/, .github/agents/ and .github/skills/.
+The hook, agents and skills go in .github/hooks/, .github/agents/ and .github/skills/. AGENTS.md is the kit's
+project template with <placeholders>, written only when the repo has no AGENTS.md; the setup-project skill fills
+it in. The kit's general working rules are not installed here: each developer gets them from install-user.py.
 """
 import os
 import sys
@@ -84,16 +86,31 @@ def main():
     else:
         parser.error("give the repository's folder; the current folder is not inside a repository other than the kit's")
 
-    rules = dest / ".github" / "instructions" / "kit.instructions.md"
-    old = dest / "AGENTS.md"
-    if old.exists() and old.read_bytes().startswith(kit.RULES.read_bytes().splitlines(keepends=True)[0]):
-        print(f"warning: {old} looks like the kit's rules from an earlier install; they now live in {rules.relative_to(dest)}. "
-              "Delete AGENTS.md unless you added your own rules to it, or Copilot reads the rules twice.", file=sys.stderr)
+    # Earlier versions of this script put the kit's general rules in the repo; they now come from install-user.py.
+    general_rules_line = kit.RULES.read_bytes().splitlines(keepends=True)[0]
+    for old in (dest / ".github" / "instructions" / "kit.instructions.md", dest / "AGENTS.md"):
+        if old.exists() and general_rules_line in old.read_bytes().splitlines(keepends=True)[:5]:
+            print(f"warning: {old.relative_to(dest)} holds the kit's general working rules from an earlier install. Those now come "
+                  "from each developer's install-user.py, so delete it unless you added your own rules, or Copilot reads them twice."
+                  + (" Then run this again to get the project template." if old.name == "AGENTS.md" else ""), file=sys.stderr)
+
+    agents_md = dest / "AGENTS.md"
+    extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json")]
+    if agents_md.exists() and agents_md.read_bytes() == kit.PROJECT_TEMPLATE.read_bytes():
+        print("AGENTS.md is still the unfilled project template; ask Copilot to \"set up this repo for Copilot\" to fill it in.")
+    elif agents_md.exists():
+        print("AGENTS.md already exists and is left as it is; the setup-project skill can propose lines to add.")
+    else:
+        extra.append((kit.PROJECT_TEMPLATE, agents_md))
 
     agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
-    files = kit.file_list(rules, kit.REPO_RULES_HEADER, dest / ".github", agent_names, skill_names)
+    files = kit.file_list(extra, dest / ".github", agent_names, skill_names)
+    fill_in = ("Ask Copilot in the repository to \"set up this repo for Copilot\" so the setup-project skill fills in AGENTS.md's "
+               "<placeholders>. " if not agents_md.exists() and "setup-project" in skill_names else
+               "Fill in the <placeholders> in AGENTS.md before using Copilot there. " if not agents_md.exists() else "")
     kit.install(files, dest, args, interactive,
-                "Nothing was committed: `git status` in the repository shows the new files; commit them if your team should have them.")
+                fill_in + "Nothing was committed: `git status` in the repository shows the new files; "
+                "commit them if your team should have them.")
 
 
 if __name__ == "__main__":

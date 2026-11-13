@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Install the kit into your own Copilot config, so it applies in every repo you open. Nothing is committed anywhere.
 
-The config folder is $COPILOT_HOME, or ~/.copilot when that is not set. The rules go in copilot-instructions.md,
-the hook in hooks/deny.json, and the agents and skills in agents/ and skills/.
+The config folder is $COPILOT_HOME, or ~/.copilot when that is not set. The kit's general working rules go in
+copilot-instructions.md, and the agents and skills in agents/ and skills/. The safety hook is not installed here:
+install-repo.py puts it in each repository.
 """
 import os
+import sys
 from pathlib import Path
 
 import installer as kit
@@ -23,8 +25,12 @@ def main():
     dest = Path(os.environ.get("COPILOT_HOME") or Path.home() / ".copilot")
     if interactive:
         print(f"Copilot kit: install for you, in every repo you open.\nYour Copilot config folder is {dest}")
+    old_hook = dest / "hooks" / "deny.json"
+    if old_hook.exists() and old_hook.read_bytes() == kit.HOOK.read_bytes():
+        print(f"note: {old_hook} is the kit's safety hook from an earlier install. The hook is now set up per repository "
+              "by install-repo.py; delete this copy if you want it only there.", file=sys.stderr)
     agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
-    files = kit.file_list(dest / "copilot-instructions.md", b"", dest, agent_names, skill_names)
+    files = kit.file_list([(kit.RULES, dest / "copilot-instructions.md")], dest, agent_names, skill_names)
     kit.install(files, dest, args, interactive,
                 "Start a new Copilot session to load them. In Copilot CLI, `copilot instruction list` shows the rules file it loads.")
 

@@ -7,7 +7,7 @@ description: Set up the current repository or folder for Copilot work with the k
 
 The kit files this skill copies are in this skill's own folder: `templates/project-AGENTS.md`, `templates/research-AGENTS.md` and `agents/*.agent.md`. The folder is `.github/skills/setup-project/` in the repository, or `~/.copilot/skills/setup-project/` (`$COPILOT_HOME/skills/setup-project/` when `COPILOT_HOME` is set). If neither has them, stop and tell the user to install the kit again with `install-user.py` or `install-repo.py`, because writing the files from memory gives a different file from the kit's.
 
-1. **Find the root and what is already there.** Run `git rev-parse --show-toplevel` and work at that root; outside a git repository, work in the current folder. Check for an existing `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/` and `.github/agents/`, and read any that exist.
+1. **Find the root and what is already there.** Run `git rev-parse --show-toplevel` and work at that root; outside a git repository, work in the current folder. Check for an existing `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/` and `.github/agents/`, and read any that exist. An `AGENTS.md` whose lines are still `<placeholders>` is the unfilled project template, not the team's own file.
 
 2. **Pick the template.** A folder of code uses `templates/project-AGENTS.md`. A folder that holds research reports and no code uses `templates/research-AGENTS.md`. If it is unclear which, ask.
 
@@ -25,7 +25,8 @@ The kit files this skill copies are in this skill's own folder: `templates/proje
 6. **Write `AGENTS.md`.**
    - Fill each placeholder with the found or given fact, in plain words. Delete a placeholder line that has no answer, such as host steps for a project with no host, and delete a section left with nothing in it, because a session acts on whatever the file says, a literal `<placeholder>` included.
    - Under Delegation, list the job of each chosen agent, taken from the "Pick the agent by the job" lines of the kit's working rules, end with "If the agent is not installed, use `worker`.", and say these lines apply in this repo whether or not the user-level working rules are installed, because the Copilot cloud agent and teammates without a user install never see those rules.
-   - If `AGENTS.md` already exists, do not overwrite it. Show the lines the template would add or change, each next to the section it goes in, and write only the lines the user picks, because the file is the team's and every session there follows it.
+   - If `AGENTS.md` is the project template still holding its `<placeholders>`, as `install-repo.py` writes it, fill it in place. If step 2 picked the research template instead, replace it with the filled-in research template.
+   - If `AGENTS.md` already exists and is not the unfilled template, do not overwrite it. Show the lines the template would add or change, each next to the section it goes in, and write only the lines the user picks, because the file is the team's and every session there follows it.
 
 7. **Copy the agents.** Copy each chosen `agents/<name>.agent.md` from this skill's folder into `.github/agents/`, unchanged. An identical file there is left alone. If a different file with that name is there, show the difference and ask before replacing it.
 

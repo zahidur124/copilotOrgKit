@@ -15,14 +15,13 @@ from pathlib import Path
 
 KIT = Path(__file__).resolve().parent
 RULES = KIT / "templates" / "AGENTS.md"
+PROJECT_TEMPLATE = KIT / "templates" / "project" / "AGENTS.md"
 HOOK = KIT / "templates" / ".github" / "hooks" / "deny.json"
-# An .instructions.md file applies only to the files its applyTo matches; "**" makes the kit's rules apply everywhere.
-REPO_RULES_HEADER = b'---\napplyTo: "**"\n---\n\n'
 # Kit files a skill copies into a project. They are installed inside the skill's own folder, so the skill finds
 # them wherever it is installed and does not depend on where the kit was cloned.
 SKILL_FILES = {
     "setup-project": [
-        (KIT / "templates" / "project" / "AGENTS.md", "templates/project-AGENTS.md"),
+        (PROJECT_TEMPLATE, "templates/project-AGENTS.md"),
         (KIT / "templates" / "research" / "AGENTS.md", "templates/research-AGENTS.md"),
     ] + [(f, f"agents/{f.name}") for f in sorted((KIT / "agents").glob("*.agent.md"))],
 }
@@ -132,11 +131,11 @@ def choose_agents_and_skills(args, interactive, parser):
     return agent_names, skill_names
 
 
-def file_list(rules_dst, rules_header, base, agent_names, skill_names):
-    """Return [(content bytes, destination)] for the rules, the hook, and the chosen agents and skills.
-    base is the folder that holds hooks/, agents/ and skills/."""
-    hooks, agents, skills = base / "hooks", base / "agents", base / "skills"
-    files = [(rules_header + RULES.read_bytes(), rules_dst), (HOOK, hooks / "deny.json")]
+def file_list(extra, base, agent_names, skill_names):
+    """Return [(content bytes, destination)] for the extra (source, destination) pairs and the chosen agents
+    and skills. base is the folder that holds agents/ and skills/."""
+    agents, skills = base / "agents", base / "skills"
+    files = list(extra)
     files += [(KIT / "agents" / f"{n}.agent.md", agents / f"{n}.agent.md") for n in agent_names]
     for n in skill_names:
         folder = KIT / "skills" / n

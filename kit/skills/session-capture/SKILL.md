@@ -11,7 +11,7 @@ description: At the end of a session, summarize what was done and propose the li
 
 3. **Give each candidate its home.**
    - How a session works in this project: the project's AGENTS.md, in plain words, naming an item by what it is, where the project has one.
-   - A fact about a file, service or vendor: the project's findings file, where the project has one.
+   - A fact about a file, service or vendor: the project's findings file, where the project has one. If a row already covers that fact, propose the rewritten row, or its deletion when the fact is no longer true, instead of a new row.
    - Open work or a bug: a row in the project's task list, where the project has one.
    - Nothing goes in the user-level rules file (`~/.copilot/copilot-instructions.md`), because it is the base for every project.
 

@@ -14,7 +14,7 @@
 ## Records
 - State: the repo's task list, if it has one, and `git log`. Product `docs/spec.md`, design `docs/design.md`.
 - Deliberate choices: when the user keeps a choice that would look like a mistake to someone reading the code, add a short comment beside it saying why, e.g. `# Pinned to 2.x: 3.x drops SSO support`, because the next session reads that code before it changes it.
-- Known facts: the repo's findings file, if it has one, not loaded at launch. Before changing a config, a deployment or code that talks to an outside service, grep it for the file, service or vendor name and read the matching rows.
+- Known facts: the repo's findings file, if it has one, not loaded at launch. Before changing a config, a deployment or code that talks to an outside service, grep it for the file, service or vendor name and read the matching rows. It holds one row per fact: when a fact changes, rewrite its row rather than adding a new one, and delete a row that is no longer true, because a session acts on whatever row it reads; the old version stays in `git log`.
 
 ## Work sizes
 An ask gets the steps of its size and nothing more.

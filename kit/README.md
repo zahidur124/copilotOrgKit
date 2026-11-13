@@ -34,7 +34,7 @@ Clone this repo and run these from its `kit/` folder (use `python3` or `py` if t
 
 `install-repo.py` asks which repo, offering the one you are in; you can type the folder or drag it into the terminal, or give it on the command line (`python install-repo.py ~/code/my-service`). Given a folder inside a repo, it offers the repo's root, because Copilot reads `.github/` only there. You decide whether to commit the files.
 
-Each script lists the 8 agents with what each is for and asks which to install: press Enter for all, or type numbers or names such as `1,3`, or `none`. It then lists the 8 packs and asks "Which packs?". Answer the same way: Enter, numbers, names, `all` or `none`. A pack is a set of skills and, for a language, its rules file. Picking several packs installs each skill and rules file once.
+Each script lists the 8 agents with what each is for and asks which to install: press Enter for all, or type numbers or names such as `1,3`, or `none`. It then lists the 8 packs and asks "Which packs?". Answer the same way: Enter, numbers, names, `all` or `none`. A pack is a set of skills and, for a language, its rules file. Picking several packs installs each skill and rules file once. An agent that works through a skill gets that skill even when no pack you picked holds it, and the script says so: `data-analyst` brings `csv-analysis`, and `document-reviewer` brings `read-documents`.
 
 | Pack | Skills | Rules file (repo only) |
 |---|---|---|

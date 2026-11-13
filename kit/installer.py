@@ -40,6 +40,11 @@ PACKS = [
     ("planning", "Planning and writing: interview for a spec, draft from examples, capture a session, set up a repo's AGENTS.md",
      ["spec-interview", "draft-from-examples", "session-capture", "setup-project"], []),
 ]
+# Skills a kit agent works through. They are installed with the agent even when no pack picked holds them.
+AGENT_SKILLS = {
+    "data-analyst": ["csv-analysis"],
+    "document-reviewer": ["read-documents"],
+}
 # Kit files a skill copies into a project. They are installed inside the skill's own folder, so the skill finds
 # them wherever it is installed and does not depend on where the kit was cloned.
 SKILL_FILES = {
@@ -232,6 +237,16 @@ def choose_packs(args, interactive, parser, default, notes, with_rules):
     if with_rules:
         print(f"  Rules files: {', '.join(rules) if rules else 'none'}")
     return skills, rules
+
+
+def add_agent_skills(agent_names, skill_names):
+    """Return skill_names plus the skills the chosen agents work through (AGENT_SKILLS), saying which were added,
+    because such an agent does not work without its skill whatever packs were picked."""
+    added = [(s, a) for a in agent_names for s in AGENT_SKILLS.get(a, []) if s not in skill_names]
+    for skill, agent in added:
+        print(f"  Also skill {skill}, which the {agent} agent uses.")
+    wanted = set(skill_names) | {s for s, _ in added}
+    return [n for n, _ in kit_items("skill") if n in wanted]
 
 
 def agents_after_install(agents_dir, agent_names):

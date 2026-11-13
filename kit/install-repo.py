@@ -170,6 +170,7 @@ def main():
     skill_names, rule_names = kit.choose_packs(args, interactive, parser, suggested,
                                                ["A pack's rules files go in .github/instructions/ and load for matching files.",
                                                 found_note], with_rules=True)
+    skill_names = kit.add_agent_skills(agent_names, skill_names)
     content, plan = kit.rules_file(agents_md, kit.PROJECT_TEMPLATE.read_text(encoding="utf-8"), AGENTS_HEADING,
                                    kit.agents_after_install(dest / ".github" / "agents", agent_names), "", args, interactive)
     extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json"), (content, agents_md)]

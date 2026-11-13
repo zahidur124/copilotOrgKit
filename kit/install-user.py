@@ -36,6 +36,7 @@ def main():
     skill_names, _ = kit.choose_packs(args, interactive, parser, [p[0] for p in kit.PACKS],
                                       ["This installs only the packs' skills. Language rules files belong to a repo, so "
                                        "install-repo.py installs them there."], with_rules=False)
+    skill_names = kit.add_agent_skills(agent_names, skill_names)
     rules_path = dest / "copilot-instructions.md"
     rules, plan = kit.rules_file(rules_path, kit.RULES.read_text(encoding="utf-8"), "## Handing work to agents",
                                  kit.agents_after_install(dest / "agents", agent_names), "  ", args, interactive)

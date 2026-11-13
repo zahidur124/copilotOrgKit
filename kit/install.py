@@ -52,6 +52,11 @@ def targets(mode, repo_dir, agent_names, skill_names):
     files += [(KIT / "agents" / f"{n}.agent.md", agents / f"{n}.agent.md") for n in agent_names]
     files += [(KIT / "skills" / n / "SKILL.md", skills / n / "SKILL.md") for n in skill_names]
     files += [(src, skills / n / rel) for n in skill_names for src, rel in SKILL_FILES.get(n, [])]
+    # Helper files that sit beside a skill's SKILL.md (scripts, examples) go with it.
+    for n in skill_names:
+        folder = KIT / "skills" / n
+        files += [(f, skills / n / f.relative_to(folder)) for f in sorted(folder.rglob("*"))
+                  if f.is_file() and f.name not in ("SKILL.md", ".DS_Store") and "__pycache__" not in f.parts and f.suffix != ".pyc"]
     return [(c if isinstance(c, bytes) else c.read_bytes(), d) for c, d in files]
 
 

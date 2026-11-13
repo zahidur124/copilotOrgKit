@@ -2,12 +2,12 @@
 
 This file lists what is in the Copilot kit, taken from the files in `kit/`. It is the source for the training deck. It adds no features that the files do not have. Where the files leave something open, this file says so.
 
-Last checked against the repo on 2026-11-12 (commit `c95c3f2` and later).
+Last checked against the repo on 2026-11-12 (commit `c95c3f2` and later, including uncommitted changes to the working rules, `worker`, `kit-researcher`, the research template and the README).
 
 ## Terms used in this file
 
 - **Agent (custom agent):** a Markdown file ending in `.agent.md`. It has a name, a one-line description, a list of tools, and written instructions. You pick it for a job, and it works with only the tools listed.
-- **Tool:** something an agent is allowed to do. The tool names used here are `read` (read files), `edit` (change or create files), `execute` (run shell commands), `search` (search files) and `web` (search and fetch web pages).
+- **Tool:** something an agent is allowed to do. The tool names used here are `read` (read files), `edit` (change or create files), `execute` (run shell commands) and `search` (search files). No kit agent has a web tool, because web search is off in the organization.
 - **Skill:** a folder with one file, `SKILL.md`. It has a name, a description, and numbered steps. Copilot can use it when your request matches its description.
 - **Working rules:** a plain Markdown file of instructions that Copilot reads at the start of a session. In a repo it is called `AGENTS.md`. In your own Copilot config it is called `copilot-instructions.md`.
 - **Hook:** a small command that Copilot runs at a set moment. The kit's hook runs before every tool call and can refuse the call.
@@ -24,15 +24,15 @@ The kit is a folder of optional files for GitHub Copilot. The README describes i
 
 | Path in `kit/` | What it is |
 |---|---|
-| `agents/*.agent.md` | 6 custom agents: worker, researcher, reader, verifier, reviewer, builder. |
+| `agents/*.agent.md` | 6 custom agents: worker, kit-researcher, reader, verifier, kit-reviewer, builder. The two `kit-` names keep them apart from Copilot CLI's built-in `research` and `code-review` agents. |
 | `skills/*/SKILL.md` | 3 skills: draft-from-examples, spec-interview, session-capture. |
-| `templates/AGENTS.md` | Working rules: facts, scope, code, verify, delegation, rules files, git. |
+| `templates/AGENTS.md` | Working rules: the task, claims, changes, handing work to agents, git, instruction files. |
 | `templates/project/AGENTS.md` | Starter rules for one project. Not installed. |
 | `templates/research/AGENTS.md` | Starter rules for a research folder. Not installed. |
 | `templates/.github/hooks/deny.json` | A safety hook that refuses a short list of risky actions. |
 | `install.sh` | Copies the installable files to where Copilot reads them. |
 
-Why it exists, as far as the files say: the working rules ask for evidence behind claims, for a stated scope, for a check that proves a task is done, and for no force-push or `git reset --hard`. The agents and skills put those habits into reusable form. The README does not give a company-level reason beyond that. The presenter should add the company's own reason.
+Why it exists, as far as the files say: the working rules ask for a finished task with a stated scope, for claims of done only about what was run and seen working, for changes that match the code around them, and for no force-push or reset of work that is not yours. The agents and skills put those habits into reusable form. The README does not give a company-level reason beyond that. The presenter should add the company's own reason.
 
 What changed on 2026-11-12 (commit `c95c3f2`, "Port worker, researcher, skills and starter templates into the kit; drop project scaffolding and tests"):
 
@@ -84,22 +84,22 @@ The example requests below are written for this reference. They are not in the k
 
 ### worker
 
-- **Purpose:** catch-all delegate. Description in the file: "Catch-all delegate: read, edit, write, run, research."
-- **When to use:** when only the result of the work is needed afterwards. `templates/AGENTS.md` lists the cases: reading across several files, pages or logs; a batch of small sub-tasks; or a change a brief can state in full that is more than a small edit.
-- **Tools:** `read`, `edit`, `execute`, `search`, `web`.
-- **How it works:** does what the brief asks and nothing beyond it. Reads only the files the brief names when the brief names them. For a question, it searches wherever it needs to. If a fact is missing, it stops and names it. If a fact the brief relies on is false, it says so in the first line of its reply. Its final message is the report: what it produced, the evidence for each claim, and the output of any check. It writes a file only if the brief names a path.
+- **Purpose:** catch-all delegate. It reads, edits and runs commands; its description says it has no web access.
+- **When to use:** when only the result of the work is needed afterwards. `templates/AGENTS.md` (Handing work to agents) lists the cases: reading across many files or logs, a batch of small sub-tasks, or a change a brief can state in full.
+- **Tools:** `read`, `edit`, `execute`, `search`.
+- **How it works:** does what the brief asks and nothing beyond it. Reads only the files the brief names when the brief names them. For a question, it searches the repository, installed packages and command output. If a fact is missing, it stops and names it. If a fact the brief relies on is false, it says so in the first line of its reply. Its final message is the report: what it produced, the evidence for each claim (path, line and quoted text, or the command and its output), and the output of any check. It writes a file only if the brief names a path.
 - **Limits:** never commits; never spawns another agent; never runs a job in the background or with `&`. Before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE`, a service restart, or overwriting a file it did not create, it stops and names the command.
 - **Example request:** "Use the worker agent. Goal: find every place in `src/` that reads the `TIMEOUT_MS` setting, so I can decide whether to rename it. Done when: you list each file and line with the exact text. Do not edit anything."
 
-### researcher
+### kit-researcher
 
-- **Purpose:** research with a written report, for a build or a new project.
-- **When to use:** when a decision depends on facts from official documentation or the web, such as a library version or an API shape.
-- **Tools:** `read`, `edit`, `execute`, `search`, `web`.
-- **How it works:** confirms every library, API or version fact by fetching official docs, and cites the URL and line numbers. It never states a version from memory. Before comparing options, it opens the subject's own primary source (README, model card, release notes) and lists every option found, even those the brief left out. If a claim names a package, CLI or version, it runs it where it can (a resolver, a dry-run install, `--help`). The report is a table with columns `claim | what was run | output | source`, with a summary at the top. It starts the report file first and adds each finding as it goes, so a partial run still leaves a usable report.
-- **Report path:** the brief's `Report path:`. If none is given, `docs/research/researcher-<task-slug>.md` in the current project.
+- **Purpose:** research with a written report, for a build, a new project or a library comparison, from what is on this machine: the repository, installed packages and their bundled docs, lockfiles, and the tools' own output.
+- **When to use:** when a decision depends on a library, API, version or tool fact that has to be checked rather than recalled, such as which version is installed or what an option does.
+- **Tools:** `read`, `edit`, `execute`, `search`. No `web`.
+- **How it works:** confirms every library, API or version fact against its source on the machine: the installed package's code, type definitions, README and CHANGELOG (for example under `node_modules/` or `site-packages/`), the lockfile, and the tool's own `--help` or `--version` output. It cites a file path and line, or a command and its output, and never states a version from memory. A fact no local source settles goes in the report as an open question, not as a finding. Before comparing options, it opens the subject's own primary source as installed (README, CHANGELOG, release notes) and lists every option found, even those the brief left out. If a claim names a package, CLI or version, it runs it where it can (a resolver, a dry-run install against the organization's package registry, `--help`). The report is a table with columns `claim | what was run | output | source`, with a summary at the top. It starts the report file first and adds each finding as it goes, so a partial run still leaves a usable report.
+- **Report path:** the brief's `Report path:`. If none is given, `docs/research/kit-researcher-<task-slug>.md` in the current project.
 - **Limits:** the same list as `worker` (never commits, no background jobs, stops before risky commands). A denied tool call, an unreadable path or a missing prerequisite goes first in the report, and it stops.
-- **Example request:** "Use the researcher agent. Goal: compare two ways to add retry logic to our HTTP client. Done when: the report has a table of claims, each with a source URL. Context: we use Node 20. Report path: `docs/research/retry-options.md`."
+- **Example request:** "Use the kit-researcher agent. Goal: compare two ways to add retry logic to our HTTP client, using the installed libraries' source and changelogs. Done when: the report has a table of claims, each citing a file and line or a command and its output. Context: we use Node 20. Report path: `docs/research/retry-options.md`."
 
 ### reader
 
@@ -120,7 +120,7 @@ The example requests below are written for this reference. They are not in the k
 - **Limits:** fixes nothing; edits no file except its report. Never commits; no background jobs.
 - **Example request:** "Use the verifier agent. Done when: `npm test` prints `Tests: 42 passed`. And `npm run lint` prints no errors."
 
-### reviewer
+### kit-reviewer
 
 - **Purpose:** reviews a diff or pull request against the task that produced it. Mechanical checks only. It assumes the diff is wrong until shown right.
 - **When to use:** before you merge a change, to check it against the brief and the rules.
@@ -138,7 +138,7 @@ The example requests below are written for this reference. They are not in the k
 
   It also fills in a four-line rule checklist (`repair-before-replace`, `scope = done_when`, `positive control`, `evidence`). Each line is `OK`, `REJECT` or `N/A` with evidence. The verdict is `APPROVE` or `REJECT` with a `file:line` reason for each point. A REJECT ends its turn. It names the fix and does not apply it.
 - **Limits:** never edits the code under review; one review per brief (a second round needs a new brief); never commits; no background jobs. It stops without reviewing if a brief field is missing.
-- **Example request:** "Use the reviewer agent. Goal: review my branch against the task 'add a timeout to fetchUser'. Done when: a verdict of APPROVE or REJECT with reasons. Context: none. Files: the diff of `main..HEAD`. Checks: scope, claims, silent-fail. Report path: `docs/review-fetchuser.md`."
+- **Example request:** "Use the kit-reviewer agent. Goal: review my branch against the task 'add a timeout to fetchUser'. Done when: a verdict of APPROVE or REJECT with reasons. Context: none. Files: the diff of `main..HEAD`. Checks: scope, claims, silent-fail. Report path: `docs/review-fetchuser.md`."
 
 ### builder
 
@@ -153,11 +153,11 @@ The example requests below are written for this reference. They are not in the k
 
 | Agent | Tools | Writes files? | Output goes to |
 |---|---|---|---|
-| worker | read, edit, execute, search, web | Only if the brief names a path | Final message |
-| researcher | read, edit, execute, search, web | Report file | Report path, plus summary in final message |
+| worker | read, edit, execute, search | Only if the brief names a path | Final message |
+| kit-researcher | read, edit, execute, search | Report file | Report path, plus summary in final message |
 | reader | read, search, execute | No | Final message |
 | verifier | read, edit, execute, search | Report only | Report path, or final message if none |
-| reviewer | read, edit, execute, search | Report only | Report path, plus verdict in final message |
+| kit-reviewer | read, edit, execute, search | Report only | Report path, plus verdict in final message |
 | builder | read, edit, execute, search | Yes, the change and a report (not `*.md`) | Report path, plus summary in final message |
 
 ## 4. The three skills
@@ -203,19 +203,18 @@ Each skill is one file, `skills/<name>/SKILL.md`, with a `name` and a `descripti
 
 ## 5. The working rules (`templates/AGENTS.md`)
 
-Title: "How to work in this organization's repositories". It has seven groups. Installed as `AGENTS.md` (repo mode) or `~/.copilot/copilot-instructions.md` (user mode).
+Title: "How to work in this organization's repositories". An opening line says the rules apply in every Copilot CLI and VS Code agent session on this machine, and that where a repository's own `AGENTS.md` differs, you follow the repository. It then has six groups. Installed as `AGENTS.md` (repo mode) or `~/.copilot/copilot-instructions.md` (user mode).
 
 | Group | What it says, in short |
 |---|---|
-| **Facts** | Back any claim someone will act on with the command you ran and its output. To prove something is absent, run one search, then a second search that must find something, because an empty result can mean the search was too narrow. Read an existing report or design doc; do not re-derive it. |
-| **Scope** | A task is the result the user asked for, finished: every step the project's `AGENTS.md` says that kind of work includes, and anything the result does not work without. Extras the result works without (an extra check, an example, a nicer build) are named at the end as `Also: <step> — <why>`, not done, because the user decides scope. If you cannot state the change in one sentence, ask before editing, and offer 2 to 4 readings of the goal. Do only what the outcome needs. Answer a question or a review with a proposal, not a change. |
-| **Code** | Write the least code that meets the task. Add no config or options nobody asked for. Add no abstraction used in only one place. Every changed line traces to the task. Delete only code your own change made unused; report other dead code. To fix a bug: state its cause in one sentence with the command and output that show it, write a test that fails on it, then fix the cause, not the symptom. |
-| **Verify** | Every task ends with a done-when: a command and the output it must print. Run it once, report its output, and stop. Re-run only after a further edit. Report a failure with its log, never hide it with a retry. After 3 failed attempts at the same fix, name the assumption that is probably wrong and ask one question. |
-| **Delegation** | Hand work to the `worker` agent when only its result is needed afterwards: reading across several files, pages or logs; a batch of small sub-tasks; or a change a brief can state in full and that is more than a small edit. Decide before the first tool call. Keep in the main session: a file about to be edited, an answer whose place is already known, one search or command with a short result. The brief says what the work is for, what done looks like, what is ruled out, and the files, sources or command. Undoable actions are delegated like any other work. A long job writes results and prints progress per batch; check it once and keep working, never sleep-poll. |
-| **Rules files** | Any file that loads into a session gets a new or changed rule only when the user asks for that rule, because rules written from single failures piled up and misfired. Fix a rule or style at the input that causes the behaviour, never by adding caps, counts or forbidden-phrase lists. |
-| **Git** | Commit in small steps; each message says why, not only what. Stage files by path, never `git add -A`. Never force-push a shared branch or run `git reset --hard`. "An org hook blocks both." |
+| **The task** | A task is the result the user asked for, finished: every step the repository's `AGENTS.md` says that kind of work includes, and anything the result does not work without. Anything it works without (an extra test, a refactor, a cleanup) is named at the end as `Also: <step> — <why>`, not done, because the user decides scope. Once the user has confirmed a plan, that plan is the task. When a request can be read more than one way, take the likeliest reading and act; ask first only when the readings lead to different work. If a request rests on something the code shows is not true, say so in one sentence and ask before doing the work. A question gets an answer, not an edit. |
+| **Claims** | Say done, fixed or passing only about what you ran and saw work in this session; for anything else, say what you changed and that it was not checked. A fix changes what caused the fault; a change that only hides the symptom is reported as a workaround, with the cause still open. Never make a failure look resolved: no retrying until it passes, skipping a test or loosening an assertion to get green. There is no web search here: check an API, version or flag against the code, the lockfile or the installed package, and if it is not there, say you do not know. Never invent a function, flag, link or source. |
+| **Changes** | New code reads like the code around it: its naming, structure and comment style. A comment explains a non-obvious why; the task, ticket and fix history go in the commit or pull request. When your change leaves code unused, remove it in the same change; report other dead code and leave it. Do not write insecure code, and fix it before you finish if you notice it. Keep secrets, tokens, customer data and internal hostnames out of code, tests, logs and commit messages. Before deleting or overwriting, look at what is there; prefer steps that can be undone, and never delete or reset your way past an error. |
+| **Handing work to agents** | Hand work to the `worker` agent when only its result is needed: reading across many files or logs, a batch of small sub-tasks, or a change a brief can state in full. Keep in the main session a file you are about to edit and a lookup one search settles, because everything read there fills the session's context. A brief says what the work is for, what done looks like, what is already ruled out, and the files or commands. The agent may not see these rules, so the brief carries any rule it must follow. A long job (migration, backfill, bulk update) writes its results and prints progress as it goes; check on it and keep working, and do not wait on it in a loop. |
+| **Git** | Review what is staged before each commit. A commit message says why, not only what. Never force-push a shared branch or reset away work that is not yours. |
+| **Instruction files** | Change `AGENTS.md`, `copilot-instructions.md` or any instructions file only when the user asks for that rule. Fix an unwanted behaviour by changing the instruction that causes it, not by adding caps, counts or lists of banned words. |
 
-The last line of the Git group depends on the hook being installed. If a developer installs the rules but not the hook, the hook is not there to block anything. The install script installs both together.
+The rules themselves do not mention the deny hook. The hook is a separate file, and the install script installs both together.
 
 ## 6. The two starter templates
 
@@ -237,11 +236,11 @@ Neither is installed by `install.sh`. Both contain `<placeholders>` in angle bra
 
 ### `templates/research/AGENTS.md`: starter rules for a research folder
 
-- **For:** a folder of web and docs research, prior art and vendor comparisons, including feasibility work with no project folder. First line: `Kind: research`.
+- **For:** a folder of research from the code and documentation on this machine (prior art, library and tool comparisons), including feasibility work with no project folder. First line: `Kind: research`.
 - **Adopt:** copy it into the folder as `AGENTS.md`, then replace each `<placeholder>` (the `<research folder>` and `<topic>` names).
 - **Contents:**
-  - **Record paths:** reports go in `research/<camelCase+DDMMYY>/report.md`. The `Ask:` line holds the user's words verbatim. The `Source:` line lists every URL the report used.
-  - **Task shape:** (1) run `grep -ril '<topic>' <research folder>` and reuse only a hit whose `Ask:` line equals the user's words verbatim; (2) dispatch `researcher` with the user's words verbatim and the report path; (3) reply with the conclusion and never list the sources.
+  - **Record paths:** reports go in `research/<camelCase+DDMMYY>/report.md`. The `Ask:` line holds the user's words verbatim. The `Source:` line lists every file and command the report used.
+  - **Task shape:** (1) run `grep -ril '<topic>' <research folder>` and reuse only a hit whose `Ask:` line equals the user's words verbatim; (2) hand the task to the `kit-researcher` agent with the user's words verbatim and the report path; (3) reply with the conclusion and never list the sources.
   - **Git:** commit the report on main and push. No worktree.
 
 ## 7. The safety hook (`templates/.github/hooks/deny.json`)
@@ -293,10 +292,10 @@ Also, from this review of the files:
 These are points a presenter may be asked about.
 
 1. **`reader` is called read-only, but has `execute`.** The README says "Its read-only tool list is what holds." The tool list is `read`, `search`, `execute`. `execute` can run any shell command. The restriction to read-only commands is a written instruction in the agent text, the same kind of rule the README says is not reliable.
-2. **Agents told not to edit have the `edit` tool.** `verifier` ("You fix nothing and edit no file except your report") and `reviewer` ("You never edit the files under review") both list `edit`. They need it to write their report. The limit is an instruction. `builder` is told "Never edit `*.md`" and also has `edit`.
-3. **The rules name `worker` only.** `templates/AGENTS.md` (Delegation) names the `worker` agent. `templates/project/AGENTS.md` (Delegation) refers to "the global `worker` and `researcher` lines in the user-level working rules". The user-level rules have no `researcher` line.
-4. **Where the researcher writes its report.** The agent's description says the Report path is "a file under the project's docs/", and its text defaults to `docs/research/researcher-<task-slug>.md`. The research template puts reports in `research/<camelCase+DDMMYY>/report.md`, which is not under `docs/`. The template's path is given in the brief, so the two can work together, but the files do not say so.
-5. **`researcher` says it stops if a field is missing, yet allows no Report path.** The description says it "stops without searching if a field is missing" and also allows "no Report path". The body supplies a default path, so a missing Report path does not stop it.
+2. **Agents told not to edit have the `edit` tool.** `verifier` ("You fix nothing and edit no file except your report") and `kit-reviewer` ("You never edit the files under review") both list `edit`. They need it to write their report. The limit is an instruction. `builder` is told "Never edit `*.md`" and also has `edit`.
+3. **The rules name `worker` only.** `templates/AGENTS.md` (Handing work to agents) names the `worker` agent and no other. `templates/project/AGENTS.md` (Delegation) is a blank for which agent does each kind of work, and asks the user to state whether it replaces "the Delegation lines in the user-level working rules". The user-level rules no longer have a section called Delegation; the matching section is Handing work to agents.
+4. **Where `kit-researcher` writes its report.** The agent's description says the Report path is "a file under the project's docs/", and its text defaults to `docs/research/kit-researcher-<task-slug>.md`. The research template puts reports in `research/<camelCase+DDMMYY>/report.md`, which is not under `docs/`. The template's path is given in the brief, so the two can work together, but the files do not say so.
+5. **`kit-researcher` says it stops if a field is missing, yet allows no Report path.** The description says it "stops without searching if a field is missing" and also allows "no Report path". The body supplies a default path, so a missing Report path does not stop it.
 6. **Repo-mode install and the project template both want `AGENTS.md`.** `./install.sh repo` writes the working rules to `<dir>/AGENTS.md`. The README says to copy `templates/project/AGENTS.md` into a repo "as `AGENTS.md`". If the install already created the file, the template cannot be copied over it without overwriting. The files do not say how to combine them. User mode has no such clash.
 7. **"Never commit" against commit steps.** All six agents say "Never commit". `session-capture` ends with "Then commit them", and the project template's Delegation section asks which agents "commit or push". Read together: the main session commits and the agents do not. The files never say this plainly.
 8. **The README does not say how to pick an agent or call a skill in Copilot.** It does not name the command or menu. The removed test script `kit/tests/live_check.sh` used `copilot --agent <name>`, but that is a deleted file, not documentation.

@@ -101,7 +101,7 @@ Code snippet of sample output: two `installed:` lines and one `skipped, already 
 - worker, researcher, reader, verifier, reviewer, builder
 
 **Speaker notes**
-Define tools: `read`, `edit`, `execute` (run commands), `search` and `web`. The tool list is the real limit on an agent. The written instructions are only requests. The README shows this: the reader agent's "no advice" rule is an instruction, and in testing it still gave advice when asked directly. Also say that none of the six agents commit or spawn other agents.
+Define tools: `read`, `edit`, `execute` (run commands) and `search`. No kit agent has a web tool, because web search is off in the organization. The tool list is the real limit on an agent. The written instructions are only requests. The README shows this: the reader agent's "no advice" rule is an instruction, and in testing it still gave advice when asked directly. Also say that none of the six agents commit or spawn other agents.
 
 **Visual**
 Table with one row per agent: name, one-line purpose, tools. Use the quick comparison table from `kit-content.md` section 3. Highlight that `reader` has no `edit` tool.
@@ -124,7 +124,7 @@ Walk through the table by asking one question: what do you need back? Facts only
 **Visual**
 Decision table with three columns: "I need...", "Pick", "Because". Add a small left-to-right flow below it: reader, builder, verifier, reviewer. Rows:
 - facts about code, files or logs, no advice | reader | read-only tools, reports facts
-- a researched answer with URLs | researcher | has `web`, cites a URL for each claim
+- a researched answer from the repo and installed packages | researcher | no `web`, cites a file and line or a command and its output for each claim
 - a fixed change with a command that proves it | builder | stops if a field is missing, never edits `*.md`
 - PASS or FAIL on my Done when commands | verifier | fixes nothing
 - APPROVE or REJECT on a diff | reviewer | assumes the diff is wrong until shown right
@@ -238,14 +238,14 @@ What the audience should take away: the skill does the thinking about steps and 
 
 **On the slide**
 - Working rules Copilot reads at the start of a session
-- Seven groups: Facts, Scope, Code, Verify, Delegation, Rules files, Git
+- Six groups: The task, Claims, Changes, Handing work to agents, Git, Instruction files
 - Installed as `AGENTS.md` (repo) or `copilot-instructions.md` (user)
 
 **Speaker notes**
-Define working rules: a plain Markdown file of instructions. Go through the groups in one line each. Facts: back claims with the command and its output. Scope: do what was asked, and name extras as "Also: ..." instead of doing them. Code: least code that meets the task, test first for bugs. Verify: every task ends with a command and the output it must print. Delegation: hand work to `worker` when you only need the result. Rules files: change a rule only when the user asks for it. Git: small commits, stage by path, never force-push or `git reset --hard`.
+Define working rules: a plain Markdown file of instructions. Go through the groups in one line each. The task: finish what was asked, and name extras as "Also: ..." instead of doing them; take the likeliest reading and act, and ask only when the readings lead to different work. Claims: say done, fixed or passing only about what you ran and saw work, and never make a failure look resolved. There is no web search, so check against the code, the lockfile or the installed package, and say you do not know if it is not there. Changes: new code reads like the code around it, and keep secrets and customer data out of code, logs and commits. Handing work to agents: hand work to `worker` when you only need the result, and put any rule it must follow in the brief. Git: review what is staged, never force-push a shared branch or reset away work that is not yours. Instruction files: change a rule only when the user asks for it.
 
 **Visual**
-Table with two columns, "Group" and "One-line rule", seven rows, taken from section 5 of `kit-content.md`. Highlight the Verify row's "done-when" idea with a code snippet: a command, and the output it must print.
+Table with two columns, "Group" and "One-line rule", six rows, taken from section 5 of `kit-content.md`. Highlight the Claims row's rule that "done" is said only about what was run and seen work, with a short before-and-after example: "Fixed" with no check run, against "I changed X; I did not run the tests".
 
 ---
 
@@ -257,7 +257,7 @@ Table with two columns, "Group" and "One-line rule", seven rows, taken from sect
 - Not installed. Copy by hand, fill in the `<placeholders>`
 
 **Speaker notes**
-The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how to end a session, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, and how to commit. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. If you installed in repo mode, an `AGENTS.md` already exists, so you need to merge by hand. The files do not say how to combine them.
+The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how to end a session, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, with the `Source:` line listing the files and commands the report used, and how to commit. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. If you installed in repo mode, an `AGENTS.md` already exists, so you need to merge by hand. The files do not say how to combine them.
 
 **Visual**
 Two side-by-side code excerpts, each about six lines, with the placeholders highlighted: from the project template, "The repo's check command: `<check command>`", and from the research template, "Reports: `research/<camelCase+DDMMYY>/report.md`".

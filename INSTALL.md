@@ -100,7 +100,7 @@ Whenever a file is replaced, the old one is kept next to it with `.bak` added to
 
 ## Running without questions
 
-Add flags to answer the questions in advance, for example in a script or a CI job. Run a script with `--help` to list them.
+Add flags to answer the questions in advance, for example to set up many repos at once. Run a script with `--help` to list them.
 
 | Flag | What it does |
 |---|---|

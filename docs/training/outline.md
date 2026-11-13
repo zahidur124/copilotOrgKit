@@ -98,13 +98,13 @@ Code snippet of sample output: two `installed:` lines and one `skipped, already 
 **On the slide**
 - An agent is a file with a name, a tool list and instructions
 - Use one when you want to hand off a job and read only the result
-- worker, researcher, reader, verifier, reviewer, builder
+- worker, kit-researcher, reader, verifier, kit-reviewer, builder
 
 **Speaker notes**
-Define tools: `read`, `edit`, `execute` (run commands) and `search`. No kit agent has a web tool, because web search is off in the organization. The tool list is the real limit on an agent. The written instructions are only requests. The README shows this: the reader agent's "no advice" rule is an instruction, and in testing it still gave advice when asked directly. Also say that none of the six agents commit or spawn other agents.
+Define tools: `read`, `edit`, `execute` (run commands) and `search`. No kit agent has a web tool, because web search is off in the organization. The tool list is the real limit on an agent. The written instructions are only requests. The README shows this: the reader agent's "no advice" rule is an instruction, and in testing it still gave advice when asked directly. Also say that none of the six agents commit or push, or hand work to another agent, and that each one carries its own safety rules in its file. Each agent's description starts "Use when ...", and that is what Copilot reads when it picks an agent.
 
 **Visual**
-Table with one row per agent: name, one-line purpose, tools. Use the quick comparison table from `kit-content.md` section 3. Highlight that `reader` has no `edit` tool.
+Table with one row per agent: name, one-line purpose, tools. Use the quick comparison table from `kit-content.md` section 3. Highlight that `reader`, `verifier` and `kit-reviewer` have no `edit` tool (they keep `execute`, so only their instruction stops a command that writes).
 
 ---
 
@@ -112,22 +112,22 @@ Table with one row per agent: name, one-line purpose, tools. Use the quick compa
 
 **On the slide**
 - Gather facts, no opinions: reader
-- Research with sources: researcher
+- Research with sources: kit-researcher
 - Make a known change with a check: builder
 - Run the checks independently: verifier
-- Review a diff: reviewer
+- Review a diff: kit-reviewer
 - Anything else: worker
 
 **Speaker notes**
-Walk through the table by asking one question: what do you need back? Facts only, a sourced report, a finished change, a pass or fail, or a verdict. If none of those fit, use `worker`. Point out the flow: reader gathers facts, builder makes the change, verifier runs the checks, reviewer checks the diff.
+Walk through the table by asking one question: what do you need back? Facts only, a sourced report, a finished change, a pass or fail, or a verdict. If none of those fit, use `worker`. Point out the flow: reader gathers facts, builder makes the change, verifier runs the checks, kit-reviewer checks the diff. This is the same routing the working rules use. If the agent for a job is not installed, the rules fall back to `worker`.
 
 **Visual**
-Decision table with three columns: "I need...", "Pick", "Because". Add a small left-to-right flow below it: reader, builder, verifier, reviewer. Rows:
-- facts about code, files or logs, no advice | reader | read-only tools, reports facts
-- a researched answer from the repo and installed packages | researcher | no `web`, cites a file and line or a command and its output for each claim
-- a fixed change with a command that proves it | builder | stops if a field is missing, never edits `*.md`
-- PASS or FAIL on my Done when commands | verifier | fixes nothing
-- APPROVE or REJECT on a diff | reviewer | assumes the diff is wrong until shown right
+Decision table with three columns: "I need...", "Pick", "Because". Add a small left-to-right flow below it: reader, builder, verifier, kit-reviewer. Rows:
+- facts about code, files or logs, no advice | reader | no `edit` tool, reports facts only
+- a researched answer from the repo and installed packages | kit-researcher | no `web`, cites a file and line or a command and its output for each claim; answers only the question asked
+- a fixed change with a command that proves it | builder | reads the lines first, then runs your check and the tests for the files it changed
+- PASS or FAIL on my checks | verifier | fixes nothing, no `edit` tool
+- APPROVE or CHANGES NEEDED on a diff | kit-reviewer | checks each claim against the code, no `edit` tool
 - something that fits none of these | worker | catch-all
 
 ---
@@ -135,25 +135,23 @@ Decision table with three columns: "I need...", "Pick", "Because". Add a small l
 ## Slide 8. How to brief an agent (2 min)
 
 **On the slide**
-- A brief is the written task. Give it in full.
-- Fields: Goal, Done when, Context, Files, Report path
-- Done when = a command and the output it must print
-- A missing field makes the agent stop and ask
+- A task note is plain text. No fixed fields.
+- Say: the goal, the context, what the agent may do, what to send back
+- Name a check: a command and the output it should print
+- The agent cannot see your chat, so the note is all it has
 
 **Speaker notes**
-Most agents in the kit stop and name what is missing instead of guessing. Say this is on purpose. Show one good example brief for `builder`. Note that `worker` takes a looser brief: what the work is for, what done looks like, what is ruled out.
+The agents do not stop because a field is missing. `worker` and `builder` stop only when they need a fact the note lacks and the files cannot settle, and `worker`, `builder`, `reader` and `kit-researcher` say so in the first line of their reply if a fact the note relies on is false. Every agent answers in its final message and writes a file only when the note names a path. Show one good example note for `builder`. To choose an agent yourself, ask for it by name, for example "use the verifier agent", or pick it with `/agent` in Copilot CLI or the agents menu in VS Code. Otherwise Copilot picks one from the agent's description and the working rules, or does the work itself.
 
 **Visual**
-Code snippet of a filled-in brief, for example:
+Code snippet of a filled-in task note, for example:
 ```
 Use the builder agent.
-Goal: change the default page size in config/app.json from 20 to 50.
-Done when: `jq .pageSize config/app.json` prints 50.
-Context: no other file reads this value.
-Files: config/app.json
-Report path: docs/builder-pagesize.md
+Change the default page size in config/app.json from 20 to 50.
+No other file reads this value.
+Check with `jq .pageSize config/app.json`, which should print 50.
 ```
-Next to it, a screenshot placeholder: "Selecting an agent in your Copilot client" (presenter to capture; the kit does not document how an agent is picked).
+Next to it, a screenshot placeholder: "Selecting an agent with /agent in Copilot CLI or the agents menu in VS Code" (presenter to capture).
 
 ---
 
@@ -242,7 +240,7 @@ What the audience should take away: the skill does the thinking about steps and 
 - Installed as `kit.instructions.md` (repo) or `copilot-instructions.md` (user)
 
 **Speaker notes**
-Define working rules: a plain Markdown file of instructions. Go through the groups in one line each. The task: finish what was asked, and name extras as "Also: ..." instead of doing them; take the likeliest reading and act, and ask only when the readings lead to different work. Claims: say done, fixed or passing only about what you ran and saw work, and never make a failure look resolved. There is no web search, so check against the code, the lockfile or the installed package, and say you do not know if it is not there. Changes: new code reads like the code around it, and keep secrets and customer data out of code, logs and commits. Handing work to agents: hand work to `worker` when you only need the result, and put any rule it must follow in the brief. Git: review what is staged, never force-push a shared branch or reset away work that is not yours. Instruction files: change a rule only when the user asks for it.
+Define working rules: a plain Markdown file of instructions. Go through the groups in one line each. The task: finish what was asked, and name extras as "Also: ..." instead of doing them; take the likeliest reading and act, and ask only when the readings lead to different work. Claims: say done, fixed or passing only about what you ran and saw work, and never make a failure look resolved. There is no web search, so check against the code, the lockfile or the installed package, and say you do not know if it is not there. Changes: new code reads like the code around it, and keep secrets and customer data out of code, logs and commits. Handing work to agents: hand work to an agent when you only need the result, picked by the job (`builder`, `reader`, `kit-researcher`, `verifier`, `kit-reviewer`, with `worker` for anything else or when that agent is not installed), and put any rule it must follow in the task note. Git: review what is staged, never force-push a shared branch or reset away work that is not yours. Instruction files: change a rule only when the user asks for it.
 
 **Visual**
 Table with two columns, "Group" and "One-line rule", six rows, taken from section 5 of `kit-content.md`. Highlight the Claims row's rule that "done" is said only about what was run and seen work, with a short before-and-after example: "Fixed" with no check run, against "I changed X; I did not run the tests".
@@ -257,7 +255,7 @@ Table with two columns, "Group" and "One-line rule", six rows, taken from sectio
 - Not installed. Copy by hand, fill in the `<placeholders>`
 
 **Speaker notes**
-The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how work lands when you ask to commit or push, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, with the `Source:` line listing the files and commands the report used. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. A repo-mode install does not use `AGENTS.md`, so the template and the kit's rules sit side by side and Copilot reads both.
+The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how work lands when you ask to commit or push, and a goal file for long tasks. The research template covers where reports go, the task shape using the `kit-researcher` agent, with the `Source:` line listing the files and commands the report used. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. A repo-mode install does not use `AGENTS.md`, so the template and the kit's rules sit side by side and Copilot reads both.
 
 **Visual**
 Two side-by-side code excerpts, each about six lines, with the placeholders highlighted: from the project template, "The repo's check command: `<check command>`", and from the research template, "Reports: `research/<camelCase+DDMMYY>/report.md`".
@@ -291,7 +289,7 @@ Table with three columns: "Blocked", "Allowed instead", "Reason shown". Add a sc
 - The `reader` agent's "no advice" rule is only an instruction
 
 **Speaker notes**
-Be direct. The hook is a safety net for accidents. For example, it does not match `rm -r -f /` written with split flags, or `rm -rf /etc`, and it does not match `.env.local`. Blocking `.pem` and `.key` also blocks public certificates with those names. The rule that holds is the tool list, not the written instruction. This is why the `reader` agent has no `edit` tool.
+Be direct. The hook is a safety net for accidents. For example, it does not match `rm -r -f /` written with split flags, or `rm -rf /etc`, and it does not match `.env.local`. Blocking `.pem` and `.key` also blocks public certificates with those names. The rule that holds is the tool list, not the written instruction. This is why `reader`, `verifier` and `kit-reviewer` have no `edit` tool. They still have `execute`, so a command that writes is stopped only by their written instruction.
 
 **Visual**
 Two-column "Catches / Does not catch" table. Catches: `git push --force`, `rm -rf ~`, `cat .env`. Does not catch: `rm -r -f /`, `rm -rf /etc`, `cat .env.local`, a script that deletes the same files.
@@ -303,7 +301,7 @@ Two-column "Catches / Does not catch" table. Catches: `git push --force`, `rm -r
 **On the slide**
 - Clone the repo; run `python install.py user` or `python install.py repo`
 - Try the hook by hand with one blocked and one allowed command
-- Run one agent with a full brief; run one skill
+- Run one agent with a task note; run one skill
 - Copy a starter template into one repo and fill in the placeholders
 - Tell the kit owner what was unclear
 
@@ -323,7 +321,7 @@ A checklist with checkboxes and the exact commands in a code font. A QR or link 
 - Who to tell about problems: <owner name or channel>
 
 **Speaker notes**
-Likely questions: how do I pick an agent in my client (check before the session; the kit does not document it), can I change the files (yes, they are plain text copied to your machine), does it send anything to my repos (no, nothing is pushed). Have the "unclear points" in section 9 of `kit-content.md` to hand.
+Likely questions: how do I pick an agent in my client (ask for it by name, or use `/agent` in Copilot CLI or the agents menu in VS Code, as the README says; try it before the session), can I change the files (yes, they are plain text copied to your machine), does it send anything to my repos (no, nothing is pushed). Have the "unclear points" in section 9 of `kit-content.md` to hand.
 
 **Visual**
 Contact placeholder and the repo path. Keep the slide plain.

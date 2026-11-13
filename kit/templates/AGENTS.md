@@ -23,8 +23,16 @@ These rules apply in every Copilot CLI and VS Code agent session on this machine
 - Before deleting or overwriting, look at what is there. Prefer steps that can be undone, and never delete or reset your way past an error.
 
 ## Handing work to agents
-- Hand work to the `worker` agent when only its result is needed: reading across many files or logs, a batch of small sub-tasks, or a change a brief can state in full. Keep in this session a file you are about to edit and a lookup one search settles, because everything read here fills this session's context.
-- A brief says what the work is for, what done looks like, what is already ruled out, and the files or commands. The agent may not see these rules, so the brief carries any rule it must follow.
+- Hand work to an agent when only its result is needed back. Keep in this session a file you are about to edit and a lookup one search settles, because everything read here fills this session's context.
+- Pick the agent by the job:
+  - a fully specified change that a command can show worked → `builder`
+  - facts about this repository's own code, logs or command output, with no advice → `reader`
+  - a library, package, API or tool fact checked against what is installed → `kit-researcher`
+  - checking that a finished change works → `verifier`
+  - reviewing a diff or pull request before it is merged → `kit-reviewer`
+  - anything else where only the result is needed, such as an investigation across many files, a batch of small sub-tasks, a change in several steps or a draft → `worker`
+  - If the agent is not installed, use `worker`.
+- The agent cannot see this conversation. Its task note gives the goal, the context it needs (files, constraints, what is already ruled out), what it may do, and what to send back. These rules may not reach the agent, so the note carries any rule the work depends on.
 - A long job (migration, backfill, bulk update) writes its results and prints progress as it goes. Check on it and keep working; do not wait on it in a loop.
 
 ## Git

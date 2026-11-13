@@ -2,7 +2,7 @@
 
 This file lists what is in the Copilot kit, taken from the files in `kit/`. It is the source for the training deck. It adds no features that the files do not have. Where the files leave something open, this file says so.
 
-Last checked against the repo on 2026-11-12 (commit `c95c3f2` and later, including uncommitted changes to the working rules, `worker`, `kit-researcher`, the research template and the README).
+Last checked against the repo on 2026-11-13 (commit `1eb6858` and later, including uncommitted changes to the six agents, the working rules and the README).
 
 ## Terms used in this file
 
@@ -11,8 +11,7 @@ Last checked against the repo on 2026-11-12 (commit `c95c3f2` and later, includi
 - **Skill:** a folder with one file, `SKILL.md`. It has a name, a description, and numbered steps. Copilot can use it when your request matches its description.
 - **Working rules:** a plain Markdown file of instructions that Copilot reads at the start of a session. In a repo, the kit's rules are installed as `.github/instructions/kit.instructions.md`, and the project's own rules go in `AGENTS.md`; Copilot reads both. In your own Copilot config it is called `copilot-instructions.md`.
 - **Hook:** a small command that Copilot runs at a set moment. The kit's hook runs before every tool call and can refuse the call.
-- **Brief:** the written task you hand to an agent. Most kit agents expect a brief with named fields (Goal, Done when, Context, Files, Report path).
-- **Done when:** a command plus the output it must print. It is how a task proves it is finished.
+- **Task note:** the written task you hand to an agent. It is plain text, with no fixed fields. It says the goal, the context (files, constraints, what is already ruled out), what the agent may do, and what to send back. The agent cannot see your conversation, so the note is all it has to start from.
 
 ## 1. What the kit is and why
 
@@ -56,7 +55,7 @@ Run `install.py` from the `kit/` folder of a clone of this repo. It needs Python
 | Skills | `~/.copilot/skills/<name>/SKILL.md` | `<dir>/.github/skills/<name>/SKILL.md` |
 | Committed? | Nothing is committed anywhere | You decide whether to commit the new files |
 
-Both modes copy the same set: the working rules, the hook, all 6 agents and all 3 skills. To install only some agents or skills, name them with `--agents` or `--skills`, for example `--agents worker,reader --skills spec-interview`. An unknown name stops the script and lists the valid names. Leaving out `worker` prints a note, because the working rules hand work to it. The two starter templates are never installed. Copy one by hand when you want it.
+Both modes copy the same set: the working rules, the hook, all 6 agents and all 3 skills. To install only some agents or skills, name them with `--agents` or `--skills`, for example `--agents worker,reader --skills spec-interview`. An unknown name stops the script and lists the valid names. Leaving out `worker` prints a note, because the working rules fall back to it when the agent for a job is not installed. The two starter templates are never installed. Copy one by hand when you want it.
 
 ### Existing files: left alone unless you ask to update
 
@@ -76,89 +75,85 @@ So running the script twice is safe. Without `--update`, an existing `AGENTS.md`
 
 ## 3. The six agents
 
-Every agent file starts with a header giving `name`, `description` and `tools`. Five of the six expect a brief with named fields. `worker` takes a free-form brief. All six say "Never commit" and none can spawn another agent.
+Every agent file starts with a header giving `name`, `description` and `tools`. Each description starts "Use when ..." and names the kind of job the agent is for. All six take a plain task note (goal, context, what it may do, what to send back) rather than fields to fill in. An agent does not stop because a field is missing. It stops only when it lacks a fact it needs that the files cannot settle (`worker`, `builder`), or, for `worker`, `builder`, `reader` and `kit-researcher`, says so in the first line of its reply when a fact the note relies on is false. Every agent answers in its final message and writes a file only when the note names a path (`reader`, `verifier` and `kit-reviewer` never write one). Each agent carries its own safety rules: never commit or push, never hand work to another agent, keep secrets, tokens, customer data and internal hostnames out of its output, stop and name the command before a risky one (all but `reader`, which runs only read-only commands), put a denied tool call first in its reply and stop, and never run a job in the background.
 
-Two things hold for all of them. First, an instruction in the agent's text is a request, not a lock. The README says this about `reader`: its "no advice" rule "is only an instruction. Asked directly, it still gave advice in testing." Second, the tool list is what actually limits the agent. Even so, several agents are told not to edit files but still have the `edit` tool (see "Where the files are unclear" at the end).
+Two things hold for all of them. First, an instruction in the agent's text is a request, not a lock. The README says this about `reader`: its "no advice" and "read-only commands" rules are "only instructions. Asked directly, it still gave advice in testing." Second, the tool list is what actually limits the agent. `reader`, `verifier` and `kit-reviewer` have no `edit` tool, but each keeps `execute`, so only their written instruction stops a shell command that writes (see "Where the files are unclear" at the end).
 
 The example requests below are written for this reference. They are not in the kit files.
 
 ### worker
 
-- **Purpose:** catch-all delegate. It reads, edits and runs commands; its description says it has no web access.
-- **When to use:** when only the result of the work is needed afterwards. `templates/AGENTS.md` (Handing work to agents) lists the cases: reading across many files or logs, a batch of small sub-tasks, or a change a brief can state in full.
+- **Purpose:** catch-all delegate. It reads, edits and runs commands; its description says it has no web access and returns the result in its final message.
+- **When to use:** when only the result of the work is needed afterwards and no other agent fits. `templates/AGENTS.md` (Handing work to agents) lists the cases: an investigation across many files or logs, a batch of small sub-tasks, a change in several steps, or a draft. It is also the fallback when the agent for a job is not installed.
 - **Tools:** `read`, `edit`, `execute`, `search`.
-- **How it works:** does what the brief asks and nothing beyond it. Reads only the files the brief names when the brief names them. For a question, it searches the repository, installed packages and command output. If a fact is missing, it stops and names it. If a fact the brief relies on is false, it says so in the first line of its reply. Its final message is the report: what it produced, the evidence for each claim (path, line and quoted text, or the command and its output), and the output of any check. It writes a file only if the brief names a path.
-- **Limits:** never commits; never spawns another agent; never runs a job in the background or with `&`. Before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE`, a service restart, or overwriting a file it did not create, it stops and names the command.
-- **Example request:** "Use the worker agent. Goal: find every place in `src/` that reads the `TIMEOUT_MS` setting, so I can decide whether to rename it. Done when: you list each file and line with the exact text. Do not edit anything."
+- **How it works:** does what the task note asks and nothing beyond it. Where the note names files or a command, it uses those. For a question, it finds the answer in the repository, installed packages and command output, and stops once it is answered. If it needs a fact the note lacks and the files cannot settle, it stops and names it. If a fact the note relies on is false, it says so in the first line of its final message and stops. The final message leads with the result, then the evidence for each claim (path, line and quoted text, or the command and its output), the output of any check the note asked for, and anything it did not do or check. It writes a file only if the note names a path.
+- **Limits:** never commits or pushes; never hands work to another agent; never runs a job in the background or with `&`. Keeps secrets, tokens, customer data and internal hostnames out of files, logs and its final message. Before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE`, a service restart, or overwriting a file it did not create, it stops and names the command.
+- **Example request:** "Use the worker agent. Find every place in `src/` that reads the `TIMEOUT_MS` setting, because I am deciding whether to rename it. List each file and line with the exact text. Do not edit anything."
 
 ### kit-researcher
 
-- **Purpose:** research with a written report, for a build, a new project or a library comparison, from what is on this machine: the repository, installed packages and their bundled docs, lockfiles, and the tools' own output.
-- **When to use:** when a decision depends on a library, API, version or tool fact that has to be checked rather than recalled, such as which version is installed or what an option does.
-- **Tools:** `read`, `edit`, `execute`, `search`. No `web`.
-- **How it works:** confirms every library, API or version fact against its source on the machine: the installed package's code, type definitions, README and CHANGELOG (for example under `node_modules/` or `site-packages/`), the lockfile, and the tool's own `--help` or `--version` output. It cites a file path and line, or a command and its output, and never states a version from memory. A fact no local source settles goes in the report as an open question, not as a finding. Before comparing options, it opens the subject's own primary source as installed (README, CHANGELOG, release notes) and lists every option found, even those the brief left out. If a claim names a package, CLI or version, it runs it where it can (a resolver, a dry-run install against the organization's package registry, `--help`). The report is a table with columns `claim | what was run | output | source`, with a summary at the top. It starts the report file first and adds each finding as it goes, so a partial run still leaves a usable report.
-- **Report path:** the brief's `Report path:`. If none is given, `docs/research/kit-researcher-<task-slug>.md` in the current project.
-- **Limits:** the same list as `worker` (never commits, no background jobs, stops before risky commands). A denied tool call, an unreadable path or a missing prerequisite goes first in the report, and it stops.
-- **Example request:** "Use the kit-researcher agent. Goal: compare two ways to add retry logic to our HTTP client, using the installed libraries' source and changelogs. Done when: the report has a table of claims, each citing a file and line or a command and its output. Context: we use Node 20. Report path: `docs/research/retry-options.md`."
+- **Purpose:** answers a question about a library, package, API or tool from sources on this machine: the repository, installed packages and their bundled docs, lockfiles, and the tools' own output.
+- **When to use:** when a fact has to be checked rather than recalled, such as what the installed version supports, which flags a CLI has, or how two installed libraries compare.
+- **Tools:** `read`, `edit`, `execute`, `search`. No `web`. Its text limits `edit` to creating a file at a path the note names.
+- **How it works:** answers the question asked. It names anything closely related that it found, but does not widen the research to it. It confirms every library, API or version fact against its source as installed: the package's code, type definitions, README and CHANGELOG (for example under `node_modules/` or `site-packages/`), the lockfile, and the tool's own `--help` or `--version` output. It never states a version or API shape from memory. A fact no local source settles is an open question, not a finding. If a fact the note relies on is false, it says so in the first line of its final message. The final message leads with the answer, then each claim with its source (a path and line, or a command and its output), then the open questions.
+- **Report file:** none by default. It writes a file only when the note names a path.
+- **Limits:** never commits or pushes; never installs anything; never hands work to another agent; no background jobs. Keeps secrets, tokens, customer data and internal hostnames out of its final message. Stops and names the command before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE`, a service restart, or overwriting a file. A denied tool call goes first in its final message, and it stops.
+- **Example request:** "Use the kit-researcher agent. We use Node 20 and want to add retry logic to our HTTP client. Compare the two ways the installed libraries support, citing a file and line or a command and its output for each claim. Write the result to `docs/research/retry-options.md`."
 
 ### reader
 
-- **Purpose:** reads a named set of files, code paths, logs or command outputs and reports facts only. No recommendations.
-- **When to use:** to gather facts before a design, such as an inventory, verbatim excerpts, counts, or which file defines something.
-- **Tools:** `read`, `search`, `execute`. It has no `edit` tool, so it cannot change files.
-- **How it works:** it writes no file. The whole report is its final message: the answer in at most 5 lines, then one row per claim with the exact excerpt or output and its path and line numbers. A file it cannot read becomes one line `MISSING <path> — <error>`. It records `git rev-parse HEAD` of each repo it reads.
-- **Limits:** runs only read-only commands such as `cat`, `grep`, `find`, `git log`, `git diff`, `git show` or a `SELECT`. It never writes, installs, or calls a paid API. Never commits.
-- **Honest limit (from the README):** the "no advice" rule is only an instruction, and it gave advice in testing when asked directly. The read-only tool list is what holds.
-- **Example request:** "Use the reader agent. Goal: list every API route in `src/routes/` with its HTTP method and file. Done when: a table with one row per route. Files: `src/routes/`."
+- **Purpose:** answers a question about this repository's own code, logs or command output, with facts only. No recommendations, and it writes no file.
+- **When to use:** to gather facts before a design, such as who calls a function, where a setting is defined, what a log says, an inventory or a count.
+- **Tools:** `read`, `search`, `execute`. It has no `edit` tool.
+- **How it works:** where the note names no files, it finds them with `rg`, `grep -rn`, `find` or `git log`. The whole answer is its final message: the answer first, then the evidence for each claim, which is the exact excerpt or output with its path and line numbers or the command that produced it. A file it cannot read is named with the error. It names anything it was asked to check but did not. If a fact the note relies on is false, it says so in the first line.
+- **Limits:** runs only read-only commands such as `cat`, `grep`, `find`, `git log`, `git diff`, `git show` or a `SELECT`. It never writes, installs, or calls a paid API. Never commits or pushes; never hands work to another agent. Describes secrets, customer data and internal hostnames instead of quoting them.
+- **Honest limit (from the README):** the "no advice" and "read-only commands" rules are only instructions, and it gave advice in testing when asked directly. The tool list has no edit tool, but it keeps the shell, so nothing but the instruction stops a command that writes.
+- **Example request:** "Use the reader agent. List every API route in `src/routes/` with its HTTP method and file, as a table with one row per route."
 
 ### verifier
 
-- **Purpose:** runs the Done when commands of a finished change and reports PASS or FAIL with the exact output. It never fixes anything.
-- **When to use:** after a change, when you want an independent run of the checks.
-- **Tools:** `read`, `edit`, `execute`, `search`.
-- **How it works:** for each Done when line it runs the command once, pastes the first 5 lines of output, and writes PASS or FAIL with the expected and actual line. A command that cannot run is a FAIL with the error text. It stops without running anything if Done when is missing. With a Report path it writes one PASS or FAIL block per line to that file. With none, the whole report is its final message and no file is written.
-- **Limits:** fixes nothing; edits no file except its report. Never commits; no background jobs.
-- **Example request:** "Use the verifier agent. Done when: `npm test` prints `Tests: 42 passed`. And `npm run lint` prints no errors."
+- **Purpose:** runs the checks that show whether a finished change works and reports PASS or FAIL for each, with the output. It never fixes anything.
+- **When to use:** after a change, when you want an independent run of the checks ("check it", "verify", "does it work").
+- **Tools:** `read`, `search`, `execute`. It has no `edit` tool.
+- **How it works:** the note gives what changed and the checks. It runs each check once and gives PASS or FAIL, the expected and actual result, and the few output lines that show it. A check that cannot run is a FAIL with the error text. It does not retry a failing check until it passes. With no checks in the note, it finds the tests that cover the changed files (`git diff --name-only`, then the matching tests), runs those, and says which it chose. The final message leads with the overall result (all PASS, or which checks failed), then one line per check, and names any check it did not run. It writes no file.
+- **Limits:** fixes nothing and edits no file. Never commits or pushes; never hands work to another agent; no background jobs. Keeps secrets, tokens, customer data and internal hostnames out of its final message. Stops and names the command before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE` or a service restart.
+- **Example request:** "Use the verifier agent. I changed the retry count in `src/client.js`. Check that `npm test` prints `Tests: 42 passed` and that `npm run lint` prints no errors."
 
 ### kit-reviewer
 
-- **Purpose:** reviews a diff or pull request against the task that produced it. Mechanical checks only. It assumes the diff is wrong until shown right.
-- **When to use:** before you merge a change, to check it against the brief and the rules.
-- **Tools:** `read`, `edit`, `execute`, `search`.
-- **How it works:** the brief names the checks from the agent's own table:
+- **Purpose:** reviews a diff, branch or pull request against what the change was meant to do. It checks each claim about the change against the code rather than trusting it, and never edits the code under review.
+- **When to use:** before you merge a change ("review this", "review my changes").
+- **Tools:** `read`, `search`, `execute`. It has no `edit` tool. It sees the change with `git diff`, `git show` or `git log`.
+- **How it works:** the note says what the change was meant to do and where the change is (a diff, a branch, a pull request or the uncommitted changes). With no stated aim, it reviews for the points below and says the aim was not given. It looks for:
+  - the change does what it was meant to do, and nothing outside that;
+  - every caller of a changed function, flag or path still works;
+  - no swallowed errors, unchecked return values or empty catch blocks;
+  - no insecure code, and no secrets, tokens, customer data or internal hostnames in code, tests, logs or commit messages;
+  - the tests cover the change, and the commit message or description matches what the code does.
 
-| Check | What it verifies |
-|---|---|
-| `fixture` | the failing-direction case F1..Fn runs and fails ahead of every passing case P1..Pn |
-| `wiring` | every caller of a changed name (function, flag, path) still parses and resolves |
-| `scope` | nothing in the diff is outside the brief / done_when |
-| `claims` | commit message and report match what the code actually does |
-| `silent-fail` | no swallowed errors, unchecked returns, empty catch blocks |
-| `framework` | a new executable/tool names the existing framework considered and why rejected |
-
-  It also fills in a four-line rule checklist (`repair-before-replace`, `scope = done_when`, `positive control`, `evidence`). Each line is `OK`, `REJECT` or `N/A` with evidence. The verdict is `APPROVE` or `REJECT` with a `file:line` reason for each point. A REJECT ends its turn. It names the fix and does not apply it.
-- **Limits:** never edits the code under review; one review per brief (a second round needs a new brief); never commits; no background jobs. It stops without reviewing if a brief field is missing.
-- **Example request:** "Use the kit-reviewer agent. Goal: review my branch against the task 'add a timeout to fetchUser'. Done when: a verdict of APPROVE or REJECT with reasons. Context: none. Files: the diff of `main..HEAD`. Checks: scope, claims, silent-fail. Report path: `docs/review-fetchuser.md`."
+  It runs the tests that cover the change where that settles a point. The final message leads with `APPROVE` or `CHANGES NEEDED`, then each problem with its file and line, why it is a problem, and the fix in one line. It does not apply the fix. It names anything it did not check.
+- **Limits:** never edits the code under review; never commits or pushes; never hands work to another agent; no background jobs. Keeps secrets, tokens, customer data and internal hostnames out of its final message. Stops and names the command before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE` or a service restart.
+- **Example request:** "Use the kit-reviewer agent. Review my branch (`main..HEAD`). It was meant to add a timeout to `fetchUser` and nothing else."
 
 ### builder
 
-- **Purpose:** applies a fixed-spec change that has a machine-checkable Done when. Examples in the file: a single-file edit, a config change, an install or a script run. Not for design or open-ended work.
+- **Purpose:** makes a change that is fully specified, where a command can show it worked: a code edit, a config change, an install or a script run. Not for design or open-ended work.
 - **When to use:** when you know exactly what the change is and how to check it.
 - **Tools:** `read`, `edit`, `execute`, `search`.
-- **How it works:** the brief gives Goal, Done when, Context, Files and Report path, written out in full. It reads the files, makes the change, runs the repo's test command and the linter, and runs the Done when command and puts its output line in the report. It writes the report to the Report path as it goes. It stops without editing if a field is missing. It greps the lines that `Files:` describes first, and if the text is not as the brief says, it stops and reports what is there.
-- **Limits:** never edits `*.md` files. Never commits. Stops and names the command before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE`, a service restart, or overwriting a file it did not create. No background jobs.
-- **Example request:** "Use the builder agent. Goal: change the default page size in `config/app.json` from 20 to 50. Done when: `jq .pageSize config/app.json` prints `50`. Context: no other file reads this value. Files: `config/app.json`. Report path: `docs/builder-pagesize.md`."
+- **How it works:** the note gives the change in full. Before editing, it reads the lines it is about to change; if the text has moved or does not match what the note says, it stops and reports what is there. If it needs a fact the note lacks and the files cannot settle, it stops and names it. After the change it runs the command the note gives and the tests that cover the files it changed. With no command in the note, it says which check it ran and why that check shows the change works. The final message leads with what changed, file by file, then the check and its output line, and names anything it did not do or check. It writes a report file only when the note names a path.
+- **Limits:** never commits or pushes; never hands work to another agent; no background jobs. Keeps secrets, tokens, customer data and internal hostnames out of code, tests, logs and its final message, and does not write insecure code. Stops and names the command before `rm -r`, `git reset --hard`, `git branch -D`, `DROP`, `DELETE`, `TRUNCATE`, a service restart, or overwriting a file it did not create.
+- **Example request:** "Use the builder agent. Change the default page size in `config/app.json` from 20 to 50. No other file reads this value. Check with `jq .pageSize config/app.json`, which should print `50`."
 
 ### Quick comparison
 
 | Agent | Tools | Writes files? | Output goes to |
 |---|---|---|---|
-| worker | read, edit, execute, search | Only if the brief names a path | Final message |
-| kit-researcher | read, edit, execute, search | Report file | Report path, plus summary in final message |
+| worker | read, edit, execute, search | Only if the note names a path | Final message |
+| kit-researcher | read, edit, execute, search | Only at a path the note names | Final message |
 | reader | read, search, execute | No | Final message |
-| verifier | read, edit, execute, search | Report only | Report path, or final message if none |
-| kit-reviewer | read, edit, execute, search | Report only | Report path, plus verdict in final message |
-| builder | read, edit, execute, search | Yes, the change and a report (not `*.md`) | Report path, plus summary in final message |
+| verifier | read, search, execute | No | Final message |
+| kit-reviewer | read, search, execute | No | Final message |
+| builder | read, edit, execute, search | Yes, the change itself; a report file only if the note names a path | Final message |
 
 ## 4. The three skills
 
@@ -210,7 +205,7 @@ Title: "How to work in this organization's repositories". An opening line says t
 | **The task** | A task is the result the user asked for, finished: every step the repository's `AGENTS.md` says that kind of work includes, and anything the result does not work without. Anything it works without (an extra test, a refactor, a cleanup) is named at the end as `Also: <step> — <why>`, not done, because the user decides scope. Once the user has confirmed a plan, that plan is the task. When a request can be read more than one way, take the likeliest reading and act; ask first only when the readings lead to different work. If a request rests on something the code shows is not true, say so in one sentence and ask before doing the work. A question gets an answer, not an edit. |
 | **Claims** | Say done, fixed or passing only about what you ran and saw work in this session; for anything else, say what you changed and that it was not checked. A fix changes what caused the fault; a change that only hides the symptom is reported as a workaround, with the cause still open. Never make a failure look resolved: no retrying until it passes, skipping a test or loosening an assertion to get green. There is no web search here: check an API, version or flag against the code, the lockfile or the installed package, and if it is not there, say you do not know. Never invent a function, flag, link or source. |
 | **Changes** | New code reads like the code around it: its naming, structure and comment style. A comment explains a non-obvious why; the task, ticket and fix history go in the commit or pull request. When your change leaves code unused, remove it in the same change; report other dead code and leave it. Do not write insecure code, and fix it before you finish if you notice it. Keep secrets, tokens, customer data and internal hostnames out of code, tests, logs and commit messages. Before deleting or overwriting, look at what is there; prefer steps that can be undone, and never delete or reset your way past an error. |
-| **Handing work to agents** | Hand work to the `worker` agent when only its result is needed: reading across many files or logs, a batch of small sub-tasks, or a change a brief can state in full. Keep in the main session a file you are about to edit and a lookup one search settles, because everything read there fills the session's context. A brief says what the work is for, what done looks like, what is already ruled out, and the files or commands. The agent may not see these rules, so the brief carries any rule it must follow. A long job (migration, backfill, bulk update) writes its results and prints progress as it goes; check on it and keep working, and do not wait on it in a loop. |
+| **Handing work to agents** | Hand work to an agent when only its result is needed back. Keep in the main session a file you are about to edit and a lookup one search settles, because everything read there fills the session's context. Pick the agent by the job: a fully specified change that a command can show worked goes to `builder`; facts about this repository's own code, logs or command output, with no advice, to `reader`; a library, package, API or tool fact checked against what is installed, to `kit-researcher`; checking that a finished change works, to `verifier`; reviewing a diff or pull request before it is merged, to `kit-reviewer`; anything else where only the result is needed (an investigation across many files, a batch of small sub-tasks, a change in several steps, a draft), to `worker`. If the agent is not installed, use `worker`. The agent cannot see the conversation. Its task note gives the goal, the context it needs (files, constraints, what is already ruled out), what it may do, and what to send back. The rules may not reach the agent, so the note carries any rule the work depends on. A long job (migration, backfill, bulk update) writes its results and prints progress as it goes; check on it and keep working, and do not wait on it in a loop. |
 | **Git** | Review what is staged before each commit. A commit message says why, not only what. Never force-push a shared branch or reset away work that is not yours. |
 | **Instruction files** | Change `AGENTS.md`, `copilot-instructions.md` or any instructions file only when the user asks for that rule. Fix an unwanted behaviour by changing the instruction that causes it, not by adding caps, counts or lists of banned words. |
 
@@ -274,30 +269,27 @@ What the patterns let through, read from the patterns themselves:
 
 ## 8. Limits listed in the README
 
-These four lines are the README's own "Limits" section.
+The README's own "Limits" section includes these points about the agents and the hook.
 
 - A hook that times out (5 s here) lets the tool call through. A hook that crashes denies it.
 - The hook matches text. It stops mistakes, not a determined person.
 - It also blocks editing `.env` files, not only reading them.
-- The reader agent's "no advice" rule is only an instruction. Asked directly, it still gave advice in testing. Its read-only tool list is what holds.
+- The reader agent's "no advice" and "read-only commands" rules are only instructions. Asked directly, it still gave advice in testing. Its tool list has no edit tool, but it keeps the shell, so nothing but the instruction stops a command that writes.
+- Every agent sets `include-custom-instructions: true`, so in Copilot CLI it still reads the repo's instruction files. After a `user` install the rules in `~/.copilot/copilot-instructions.md` may not reach a handed-off agent, and a session started with `--no-custom-instructions` gives no agent any rules. In VS Code, a reported bug (microsoft/vscode#343696) means a handed-off custom agent may get no instruction files at all. So each agent carries its own safety rules, and the task note carries anything else the work depends on.
 
 Also, from this review of the files:
 
 - The kit's automated tests for the hook were removed on 2026-11-12, so nothing in the repo now checks that the hook behaves as described. Try it by hand before relying on it.
-- The agent instructions that say "never edit" or "fix nothing" are instructions. Several agents that are told not to edit still carry the `edit` tool (see below).
+- The agent instructions that say "never edit", "fix nothing" or "read-only" are instructions. `reader`, `verifier` and `kit-reviewer` have no `edit` tool, but all three keep `execute` (see below).
 
 ## 9. Where the files are unclear or disagree
 
 These are points a presenter may be asked about.
 
-1. **`reader` is called read-only, but has `execute`.** The README says "Its read-only tool list is what holds." The tool list is `read`, `search`, `execute`. `execute` can run any shell command. The restriction to read-only commands is a written instruction in the agent text, the same kind of rule the README says is not reliable.
-2. **Agents told not to edit have the `edit` tool.** `verifier` ("You fix nothing and edit no file except your report") and `kit-reviewer` ("You never edit the files under review") both list `edit`. They need it to write their report. The limit is an instruction. `builder` is told "Never edit `*.md`" and also has `edit`.
-3. **The rules name `worker` only.** `templates/AGENTS.md` (Handing work to agents) names the `worker` agent and no other. `templates/project/AGENTS.md` (Delegation) is a blank for which agent does each kind of work, and asks the user to state whether it replaces "the Delegation lines in the user-level working rules". The user-level rules no longer have a section called Delegation; the matching section is Handing work to agents.
-4. **Where `kit-researcher` writes its report.** The agent's description says the Report path is "a file under the project's docs/", and its text defaults to `docs/research/kit-researcher-<task-slug>.md`. The research template puts reports in `research/<camelCase+DDMMYY>/report.md`, which is not under `docs/`. The template's path is given in the brief, so the two can work together, but the files do not say so.
-5. **`kit-researcher` says it stops if a field is missing, yet allows no Report path.** The description says it "stops without searching if a field is missing" and also allows "no Report path". The body supplies a default path, so a missing Report path does not stop it.
-6. **Repo installs from before November 2026 put the rules in `AGENTS.md`.** The script now writes them to `.github/instructions/kit.instructions.md` and never touches `AGENTS.md`, so the project template can be copied there. In a repo whose `AGENTS.md` still starts with the kit's rules title, the script prints a warning to delete it, because otherwise Copilot reads the rules twice.
-7. **Who commits.** All six agents say "Never commit". No template or skill commits or pushes on its own; the project template's Landing work line applies only when the user asks to commit or push.
-8. **The README does not say how to pick an agent or call a skill in Copilot.** It does not name the command or menu. The removed test script `kit/tests/live_check.sh` used `copilot --agent <name>`, but that is a deleted file, not documentation.
-9. **Terms the agents use without defining them.** The agent files mention a "findings file" with `@hash` rows, `done_when`, "the requester", and "Proposed decision:" lines. These come from a working style the kit does not explain. They only matter if the repo uses them.
-10. **The hook's `.env` rule and the rules text.** The deny reason says "use .env.example", which works because `.env.example` is allowed. A file named `.env.local` or `.env.production` is not matched.
-11. **The hook has only a `bash` command.** The file has no `powershell` or `command` entry. The files do not say what happens on a Windows machine without bash.
+1. **`reader`, `verifier` and `kit-reviewer` have no `edit` tool, but they have `execute`.** The README says of `reader` that "nothing but the instruction stops a command that writes." The same holds for the other two. `execute` can run any shell command. The restriction to read-only commands (`reader`), to fixing nothing (`verifier`) and to never editing the code under review (`kit-reviewer`) is a written instruction in the agent text, the same kind of rule the README says is not reliable.
+2. **`kit-researcher` has the `edit` tool.** Its text says to create a file only at a path the note names. That limit is an instruction, not the tool list. `worker` and `builder` also have `edit`, but they are meant to change files.
+3. **The project template's Delegation blank.** `templates/project/AGENTS.md` (Delegation) is a blank for which agent does each kind of work, and asks the user to state whether it replaces "the Delegation lines in the user-level working rules". The user-level rules have no section called Delegation. The matching section is Handing work to agents, which already routes each job type to an agent.
+4. **Repo installs from before November 2026 put the rules in `AGENTS.md`.** The script now writes them to `.github/instructions/kit.instructions.md` and never touches `AGENTS.md`, so the project template can be copied there. In a repo whose `AGENTS.md` still starts with the kit's rules title, the script prints a warning to delete it, because otherwise Copilot reads the rules twice.
+5. **Who commits.** All six agents say "Never commit or push". No template or skill commits or pushes on its own; the project template's Landing work line applies only when the user asks to commit or push.
+6. **The hook's `.env` rule and the rules text.** The deny reason says "use .env.example", which works because `.env.example` is allowed. A file named `.env.local` or `.env.production` is not matched.
+7. **The hook has only a `bash` command.** The file has no `powershell` or `command` entry. The files do not say what happens on a Windows machine without bash.

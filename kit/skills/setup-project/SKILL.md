@@ -5,7 +5,7 @@ description: Set up the current repository or folder for Copilot work with the k
 
 # setup-project
 
-The kit files this skill copies are in this skill's own folder: `templates/project-AGENTS.md`, `templates/research-AGENTS.md` and `agents/*.agent.md`. The folder is `.github/skills/setup-project/` in the repository, or `~/.copilot/skills/setup-project/` (`$COPILOT_HOME/skills/setup-project/` when `COPILOT_HOME` is set). If neither has them, stop and tell the user to install the kit again with `install.py`, because writing the files from memory gives a different file from the kit's.
+The kit files this skill copies are in this skill's own folder: `templates/project-AGENTS.md`, `templates/research-AGENTS.md` and `agents/*.agent.md`. The folder is `.github/skills/setup-project/` in the repository, or `~/.copilot/skills/setup-project/` (`$COPILOT_HOME/skills/setup-project/` when `COPILOT_HOME` is set). If neither has them, stop and tell the user to install the kit again with `install-user.py` or `install-repo.py`, because writing the files from memory gives a different file from the kit's.
 
 1. **Find the root and what is already there.** Run `git rev-parse --show-toplevel` and work at that root; outside a git repository, work in the current folder. Check for an existing `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/` and `.github/agents/`, and read any that exist.
 

@@ -191,7 +191,7 @@ Each skill is one file, `skills/<name>/SKILL.md`, with a `name` and a `descripti
 - **Steps:**
   1. Summarise the session in a few sentences, from the conversation and the commits it made.
   2. List what a new session would need: what this session had to work out that is not in the code, `git log` or the `AGENTS.md` files. Examples: a command that works, where something lives, a convention, a trap that cost time. It leaves out what an existing line already says, what only mattered to this task, and any rule drawn from a single failure.
-  3. Give each candidate a home: how to work in the project goes to the project's `AGENTS.md`; decisions and reasons go to the decisions file; facts about a file, service or vendor go to the findings file; open work or a bug goes to the task list. Where the project has no such file, that home is skipped. Nothing goes in the user-level rules file (`~/.copilot/copilot-instructions.md`).
+  3. Give each candidate a home: how to work in the project goes to the project's `AGENTS.md`; facts about a file, service or vendor go to the findings file; open work or a bug goes to the task list. Where the project has no such file, that home is skipped. Nothing goes in the user-level rules file (`~/.copilot/copilot-instructions.md`).
   4. Propose, then stop: each candidate as the exact line, the file it goes in, and one sentence on why. Nothing is written until you pick.
   5. Write the lines you picked, word for word.
 - **Example:** "That's it for today. What should go in AGENTS.md from this session?"
@@ -222,7 +222,7 @@ Neither is installed by `install.py`. Both contain `<placeholders>` in angle bra
 - **Sections:**
   - **Start:** the user's request is the task. The task list is read only when the user asks what is next or says to carry on. Work stays inside the project folder.
   - **Commands:** the repo's check command (`<check command>`), the end-to-end command (`<end-to-end command>`), and any host steps.
-  - **Records:** where state, spec (`docs/spec.md`), design (`docs/design.md`), decisions and findings live, and the rule to grep the findings file before changing a config, a deployment or code that talks to an outside service.
+  - **Records:** where state, spec (`docs/spec.md`), design (`docs/design.md`) and findings live; the rule to grep the findings file before changing a config, a deployment or code that talks to an outside service; and the rule that a choice the user keeps on purpose, which would look like a mistake in the code, gets a short comment beside it saying why.
   - **Work sizes:** an ask gets the steps of its size and nothing more. Small change or bug fix: edit, then the tests it touches and the quick check; a bug in tested code also gets a test that fails first. Feature: the code and its tests under `tests/`, plus one `F<N>` line in `docs/spec.md` where the repo keeps one. Docs-only: edit, with no tests to run.
   - **Landing work:** when the user asks to commit or push, do it the way this team's work lands (fill in, for example, a branch and a pull request, or a commit on main), and `<Release: CI / install line / none.>`. Never rewrite pushed history.
   - **Long tasks:** a task longer than one sitting opens by writing `docs/goal.md` (goal in the user's words, the check that shows it is done, what is out of scope, one progress line per finished step). Read it again after a compaction or resume, because "an instruction given only in chat can drop out of the compaction summary." (Compaction means the session shortens its own history to save room.)

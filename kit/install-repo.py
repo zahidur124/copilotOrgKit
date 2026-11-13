@@ -4,8 +4,8 @@ You decide whether to commit the files.
 
 The hook, agents and skills go in .github/hooks/, .github/agents/ and .github/skills/. AGENTS.md is the kit's
 project template with <placeholders>, written when the repo has no AGENTS.md; the setup-project skill fills it
-in. Its "Agents in this repo" section names the job of each kit agent in .github/agents/; in an existing AGENTS.md
-only that section is added or updated, and the script asks first. The kit's general working rules are not
+in. Its "Agents in this repo" section names the job of each kit agent in .github/agents/; when AGENTS.md
+already exists, the script asks whether to merge (update only that section) or overwrite it with the template. The kit's general working rules are not
 installed here: each developer gets them from install-user.py.
 """
 import os
@@ -101,25 +101,21 @@ def main():
                   + (" Then run this again to get the project template." if old.name == "AGENTS.md" else ""), file=sys.stderr)
 
     agents_md = dest / "AGENTS.md"
-    current = agents_md.read_text(encoding="utf-8") if agents_md.exists() else None
-    if current and current.startswith(TEMPLATE_TITLE):
+    if agents_md.exists() and agents_md.read_text(encoding="utf-8").startswith(TEMPLATE_TITLE):
         print("AGENTS.md is still the unfilled project template; ask Copilot to \"set up this repo for Copilot\" to fill it in.")
-    elif current is not None:
-        print(f"AGENTS.md already exists. Only its \"{AGENTS_HEADING[3:]}\" section is added or updated for the agents "
-              "installed here, and you are asked first; the rest of the file stays as it is.")
 
     agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
-    template = kit.PROJECT_TEMPLATE.read_text(encoding="utf-8")
-    new_agents_md = kit.with_agents_section(current if current is not None else template, template, AGENTS_HEADING,
-                                            kit.agents_after_install(dest / ".github" / "agents", agent_names), "")
-    extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json"), (new_agents_md.encode("utf-8"), agents_md)]
+    content, plan = kit.rules_file(agents_md, kit.PROJECT_TEMPLATE.read_text(encoding="utf-8"), AGENTS_HEADING,
+                                   kit.agents_after_install(dest / ".github" / "agents", agent_names), "", args, interactive)
+    extra = [(kit.HOOK, dest / ".github" / "hooks" / "deny.json"), (content, agents_md)]
     files = kit.file_list(extra, dest / ".github", agent_names, skill_names)
+    from_template = not agents_md.exists() or (plan or "").startswith("overwrite")
     fill_in = ("Ask Copilot in the repository to \"set up this repo for Copilot\" so the setup-project skill fills in AGENTS.md's "
-               "<placeholders>. " if not agents_md.exists() and "setup-project" in skill_names else
-               "Fill in the <placeholders> in AGENTS.md before using Copilot there. " if not agents_md.exists() else "")
+               "<placeholders>. " if from_template and "setup-project" in skill_names else
+               "Fill in the <placeholders> in AGENTS.md before using Copilot there. " if from_template else "")
     kit.install(files, dest, args, interactive,
                 fill_in + "Nothing was committed: `git status` in the repository shows the new files; "
-                "commit them if your team should have them.")
+                "commit them if your team should have them.", {agents_md: plan} if plan else None)
 
 
 if __name__ == "__main__":

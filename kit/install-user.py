@@ -31,12 +31,13 @@ def main():
         print(f"note: {old_hook} is the kit's safety hook from an earlier install. The hook is now set up per repository "
               "by install-repo.py; delete this copy if you want it only there.", file=sys.stderr)
     agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
-    template = kit.RULES.read_text(encoding="utf-8")
-    rules = kit.with_agents_section(template, template, "## Handing work to agents",
-                                    kit.agents_after_install(dest / "agents", agent_names), "  ")
-    files = kit.file_list([(rules.encode("utf-8"), dest / "copilot-instructions.md")], dest, agent_names, skill_names)
+    rules_path = dest / "copilot-instructions.md"
+    rules, plan = kit.rules_file(rules_path, kit.RULES.read_text(encoding="utf-8"), "## Handing work to agents",
+                                 kit.agents_after_install(dest / "agents", agent_names), "  ", args, interactive)
+    files = kit.file_list([(rules, rules_path)], dest, agent_names, skill_names)
     kit.install(files, dest, args, interactive,
-                "Start a new Copilot session to load them. In Copilot CLI, `copilot instruction list` shows the rules file it loads.")
+                "Start a new Copilot session to load them. In Copilot CLI, `copilot instruction list` shows the rules file it loads.",
+                {rules_path: plan} if plan else None)
 
 
 if __name__ == "__main__":

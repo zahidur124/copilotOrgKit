@@ -65,7 +65,10 @@ def make_parser(description, usage_examples):
     skills = ", ".join(n for n, _ in kit_items("skill"))
     parser.add_argument("--agents", metavar="NAMES", help=f"comma-separated agents to install, or all, or none. Kit agents: {agents}")
     parser.add_argument("--skills", metavar="NAMES", help=f"comma-separated skills to install, or all, or none. Kit skills: {skills}")
-    parser.add_argument("--update", action="store_true", help="replace installed files that differ from the kit, keeping each old one as <name>.bak")
+    parser.add_argument("--update", action="store_true", help="replace installed agent, skill and hook files that differ from the kit, keeping each old one as <name>.bak")
+    parser.add_argument("--rules", choices=("merge", "overwrite"),
+                        help="when the rules file (copilot-instructions.md or AGENTS.md) already exists: merge updates only its "
+                             "agents section (the default), overwrite replaces it with the kit's; either keeps the old one as .bak")
     parser.add_argument("--yes", "-y", action="store_true", help="ask nothing: use the flags given and install everything else")
     return parser
 
@@ -173,6 +176,28 @@ def with_agents_section(text, template, heading, agents, indent):
     return text.rstrip("\n") + "\n"
 
 
+def rules_file(path, template, heading, agents, indent, args, interactive):
+    """Return (content, plan) for a rules file that carries an agents section. A missing file, or one that already
+    matches, gets the kit's template with the section filled in and plan None. Otherwise the user chooses, by
+    --rules or a question, to merge (keep the file and update only that section) or overwrite it with the kit's
+    version; plan then says what happens, for install() to show and do without its replace question."""
+    fresh = with_agents_section(template, template, heading, agents, indent)
+    if not path.exists() or path.read_text(encoding="utf-8") == fresh:
+        return fresh.encode("utf-8"), None
+    choice = args.rules
+    while choice is None and interactive:
+        answer = input(f"\n{path.name} already exists and differs from the kit's. Merge (keep it and update only its "
+                       f"\"{heading[3:]}\" section) or overwrite (replace it with the kit's)? Either keeps the old file "
+                       f"as {path.name}.bak. [M/o] ").strip().lower()
+        choice = {"": "merge", "m": "merge", "merge": "merge", "o": "overwrite", "overwrite": "overwrite"}.get(answer)
+        if choice is None:
+            print("Please answer m or o.")
+    if choice == "overwrite":
+        return fresh.encode("utf-8"), "overwrite with the kit's version"
+    merged = with_agents_section(path.read_text(encoding="utf-8"), template, heading, agents, indent)
+    return merged.encode("utf-8"), f"merge: update only its \"{heading[3:]}\" section"
+
+
 def file_list(extra, base, agent_names, skill_names):
     """Return [(content bytes, destination)] for the extra (source, destination) pairs and the chosen agents
     and skills. base is the folder that holds agents/ and skills/."""
@@ -189,21 +214,33 @@ def file_list(extra, base, agent_names, skill_names):
     return [(c if isinstance(c, bytes) else c.read_bytes(), d) for c, d in files]
 
 
-def install(files, dest, args, interactive, next_steps):
-    """Show what will happen, ask to go ahead when interactive, then write the files."""
+def install(files, dest, args, interactive, next_steps, plans=None):
+    """Show what will happen, ask to go ahead when interactive, then write the files. plans maps a destination
+    whose merge-or-overwrite question was already answered (see rules_file) to what happens to it; such a file is
+    written without the replace question, keeping the old one as .bak."""
     def show(path):
         try:
             return str(path.relative_to(dest))
         except ValueError:
             return str(path)
 
+    def replace_file(content, dst, verb):
+        backup = dst.with_name(dst.name + ".bak")
+        shutil.copyfile(dst, backup)
+        dst.write_bytes(content)
+        print(f"{verb + ':':<10} {show(dst)} (old file kept as {backup.name})")
+
+    plans = plans or {}
     new = [(c, d) for c, d in files if not d.exists()]
     same = [(c, d) for c, d in files if d.exists() and d.read_bytes() == c]
-    differ = [(c, d) for c, d in files if d.exists() and d.read_bytes() != c]
+    planned = [(c, d) for c, d in files if d.exists() and d.read_bytes() != c and d in plans]
+    differ = [(c, d) for c, d in files if d.exists() and d.read_bytes() != c and d not in plans]
 
     print(f"\nInto {dest}:")
     print(f"  {len(new)} new file(s) to install")
     print(f"  {len(same)} file(s) already up to date")
+    for _, d in planned:
+        print(f"  {show(d)}: {plans[d]}")
     if differ:
         print(f"  {len(differ)} file(s) differ from the kit (changed by you, or from an older kit):")
         for _, d in differ:
@@ -212,7 +249,7 @@ def install(files, dest, args, interactive, next_steps):
     replace = args.update
     if differ and not replace and interactive:
         replace = ask_yes_no("Replace the files that differ? Each old file is kept beside it as <name>.bak.", False)
-    if not new and not (differ and replace):
+    if not new and not planned and not (differ and replace):
         print("\nNothing to install." + (" Run again with --update to replace the files that differ." if differ else ""))
         return
     if interactive and not ask_yes_no("Install now?", True):
@@ -224,12 +261,11 @@ def install(files, dest, args, interactive, next_steps):
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_bytes(content)
         print(f"installed: {show(dst)}")
+    for content, dst in planned:
+        replace_file(content, dst, "merged" if plans[dst].startswith("merge") else "overwritten")
     for content, dst in differ:
         if replace:
-            backup = dst.with_name(dst.name + ".bak")
-            shutil.copyfile(dst, backup)
-            dst.write_bytes(content)
-            print(f"replaced:  {show(dst)} (old file kept as {backup.name})")
+            replace_file(content, dst, "replaced")
         else:
             print(f"skipped, differs from the kit: {show(dst)}")
     if differ and not replace:

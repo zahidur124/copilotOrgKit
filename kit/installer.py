@@ -8,6 +8,7 @@ nothing is asked: every agent and skill is installed and files that differ are s
 Runs on Windows, macOS and Linux with Python 3.8 or later; needs nothing outside the standard library.
 """
 import argparse
+import re
 import shutil
 import sys
 import textwrap
@@ -24,6 +25,19 @@ SKILL_FILES = {
         (PROJECT_TEMPLATE, "templates/project-AGENTS.md"),
         (KIT / "templates" / "research" / "AGENTS.md", "templates/research-AGENTS.md"),
     ],
+}
+# The job each kit agent gets in the delegation lines. install-user.py writes the lines for the agents installed for
+# the user into the general rules; install-repo.py writes the lines for the agents installed in a repo into its AGENTS.md.
+AGENT_JOBS = {
+    "builder": "a fully specified change that a command can show worked",
+    "reader": "facts about this repository's own code, logs or command output, with no advice",
+    "kit-researcher": "a library, package, API or tool fact checked against what is installed",
+    "verifier": "checking that a finished change works",
+    "kit-reviewer": "reviewing a diff or pull request before it is merged",
+    "data-analyst": "questions about CSV or other tabular data files",
+    "document-reviewer": "reviewing a Word, PDF or PowerPoint document against a checklist or policy",
+    "worker": "anything else where only the result is needed, such as an investigation across many files, "
+              "a batch of small sub-tasks, a change in several steps or a draft",
 }
 
 
@@ -127,6 +141,36 @@ def choose_agents_and_skills(args, interactive, parser):
     agent_names = choose("agent", args.agents, interactive, parser)
     skill_names = choose("skill", args.skills, interactive, parser)
     return agent_names, skill_names
+
+
+def agents_after_install(agents_dir, agent_names):
+    """The kit agents that agents_dir holds once this install is done: the ones chosen now and the ones already there."""
+    return [n for n, _ in kit_items("agent") if n in agent_names or (agents_dir / f"{n}.agent.md").exists()]
+
+
+def _find_section(text, heading):
+    return re.search(rf"^{re.escape(heading)}[ \t]*\n.*?(?=^## |\Z)", text, re.M | re.S)
+
+
+def with_agents_section(text, template, heading, agents, indent):
+    """Return text with its section under heading replaced by the template's section of that name, in which the
+    <placeholder> line becomes one job line per agent. The section is added at the end when text has none, and
+    removed when there are no agents. The worker fallback line is added only when worker is one of the agents."""
+    section = ""
+    if agents:
+        lines = [f"{indent}- {AGENT_JOBS.get(n, 'jobs that fit its description')} → `{n}`" for n in agents]
+        if "worker" in agents:
+            lines.append(f"{indent}- If the agent for a job is not installed, use `worker`.")
+        own = _find_section(template, heading).group(0).splitlines()
+        at = next(i for i, line in enumerate(own) if line.startswith("<") and line.endswith(">"))
+        section = "\n".join(own[:at] + lines + own[at + 1:]).strip("\n") + "\n"
+    match = _find_section(text, heading)
+    if match:
+        rest = text[match.end():]
+        text = text[:match.start()] + (section + "\n" if section and rest else section) + rest
+    elif section:
+        text = text.rstrip("\n") + "\n\n" + section
+    return text.rstrip("\n") + "\n"
 
 
 def file_list(extra, base, agent_names, skill_names):

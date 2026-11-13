@@ -2,7 +2,8 @@
 """Install the kit into your own Copilot config, so it applies in every repo you open. Nothing is committed anywhere.
 
 The config folder is $COPILOT_HOME, or ~/.copilot when that is not set. The kit's general working rules go in
-copilot-instructions.md, and the agents and skills in agents/ and skills/. The safety hook is not installed here:
+copilot-instructions.md, with delegation lines for the agents installed there, and the agents and skills in agents/
+and skills/. The safety hook is not installed here:
 install-repo.py puts it in each repository.
 """
 import os
@@ -30,7 +31,10 @@ def main():
         print(f"note: {old_hook} is the kit's safety hook from an earlier install. The hook is now set up per repository "
               "by install-repo.py; delete this copy if you want it only there.", file=sys.stderr)
     agent_names, skill_names = kit.choose_agents_and_skills(args, interactive, parser)
-    files = kit.file_list([(kit.RULES, dest / "copilot-instructions.md")], dest, agent_names, skill_names)
+    template = kit.RULES.read_text(encoding="utf-8")
+    rules = kit.with_agents_section(template, template, "## Handing work to agents",
+                                    kit.agents_after_install(dest / "agents", agent_names), "  ")
+    files = kit.file_list([(rules.encode("utf-8"), dest / "copilot-instructions.md")], dest, agent_names, skill_names)
     kit.install(files, dest, args, interactive,
                 "Start a new Copilot session to load them. In Copilot CLI, `copilot instruction list` shows the rules file it loads.")
 

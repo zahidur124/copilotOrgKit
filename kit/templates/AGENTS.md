@@ -29,6 +29,14 @@ These rules apply in every Copilot CLI and VS Code agent session on this machine
 - Do not write insecure code; if you notice it in what you are writing, fix it before you finish. Keep secrets, tokens, customer data and internal hostnames out of code, tests, logs and commit messages.
 - Before deleting or overwriting, look at what is there. Prefer steps that can be undone, and never delete or reset your way past an error.
 
+## Handing work to agents
+- Hand work to an agent when only its result is needed back. Keep in this session a file you are about to edit and a lookup one search settles, because everything read here fills this session's context.
+- Pick the agent by the job:
+<One line per agent installed for you and the job it gets; install-user.py writes these lines.>
+- A repository's AGENTS.md can list more agents under "Agents in this repo"; in that repository they are part of this list.
+- The agent cannot see this conversation. Its task note gives the goal, the context it needs (files, constraints, what is already ruled out), what it may do, and what to send back. These rules may not reach the agent, so the note carries any rule the work depends on.
+- A long job (migration, backfill, bulk update) writes its results and prints progress as it goes. Check on it and keep working; do not wait on it in a loop.
+
 ## Git
 - Review what is staged before each commit. A commit message says why, not only what.
 - Never force-push a shared branch or reset away work that is not yours.

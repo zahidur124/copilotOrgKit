@@ -5,10 +5,10 @@ Optional agents, skills, working rules and a safety hook for GitHub Copilot. Eac
 | Path | What it is |
 |---|---|
 | `agents/*.agent.md` | 6 custom agents: worker, kit-researcher, reader, verifier, kit-reviewer, builder. The two `kit-` names keep them apart from Copilot CLI's built-in `research` and `code-review` agents. |
-| `skills/*/SKILL.md` | 3 skills: draft-from-examples, spec-interview, session-capture. |
+| `skills/*/SKILL.md` | 4 skills: draft-from-examples, spec-interview, session-capture, setup-project. |
 | `templates/AGENTS.md` | Working rules: the task, claims, changes, handing work to agents, git, instruction files. Installed as `~/.copilot/copilot-instructions.md` (user) or `.github/instructions/kit.instructions.md` (repo). |
-| `templates/project/AGENTS.md` | Starter rules for one project. Not installed: copy it into a repo as `AGENTS.md` and fill in the `<placeholders>`. |
-| `templates/research/AGENTS.md` | Starter rules for a research folder. Not installed: copy it into the folder as `AGENTS.md` and fill in the `<placeholders>`. |
+| `templates/project/AGENTS.md` | Starter rules for one project. The setup-project skill writes it into a repo as `AGENTS.md`, filled in from the repo; or copy it by hand and fill in the `<placeholders>`. |
+| `templates/research/AGENTS.md` | Starter rules for a research folder. Used the same way as the project template. |
 | `templates/.github/hooks/deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. |
 | `install.py` | Copies the files above to where Copilot reads them. Needs Python 3.8 or later and nothing else, so it runs on Windows, macOS and Linux. |
 
@@ -19,7 +19,7 @@ Clone this repo, then run one of these from its `kit/` folder (use `python3` or 
 - `python install.py user` copies everything into your Copilot config (`~/.copilot`, or `$COPILOT_HOME`). It applies in every repo you open, and nothing is committed anywhere. The rules go in `~/.copilot/copilot-instructions.md`, the hook in `~/.copilot/hooks/deny.json`, the agents in `~/.copilot/agents/` and the skills in `~/.copilot/skills/`.
 - `python install.py repo [dir]` copies everything into one repo (default: the current directory, which must be the repo root): the rules in `.github/instructions/kit.instructions.md`, and `.github/hooks/`, `.github/agents/` and `.github/skills/`. You decide whether to commit them. The repo's own `AGENTS.md` is never touched, so the project template can live there; Copilot reads both. If an earlier install put the kit's rules in `AGENTS.md`, the script warns you to delete it, so Copilot does not read the rules twice.
 
-Both install all 6 agents and all 3 skills unless you name the ones you want with `--agents` or `--skills`, for example `python install.py user --agents worker,reader --skills spec-interview`. The working rules send work to an agent by the kind of job and fall back to `worker` when that agent is not installed, so the script tells you if you leave `worker` out.
+Both install all 6 agents and all 4 skills unless you name the ones you want with `--agents` or `--skills`, for example `python install.py user --agents worker,reader --skills spec-interview`. The working rules send work to an agent by the kind of job and fall back to `worker` when that agent is not installed, so the script tells you if you leave `worker` out.
 
 Copilot picks an agent itself from the agent's description and the working rules, or does the work itself. To choose one yourself, ask for it by name, for example "use the verifier agent", or pick it with `/agent` in Copilot CLI or the agents menu in VS Code.
 
@@ -33,7 +33,7 @@ VS Code's older Local harness reads agents and instructions from the VS Code pro
 
 A file identical to the kit's copy is left alone. A file that differs is skipped and listed, and the run ends by saying how many differ. To update, run the same command with `--update`: each file that differs is replaced, and the old one is kept beside it as `<name>.bak`.
 
-The two starter templates are not installed. Copy one into a repo by hand when you want it.
+The two starter templates are not installed on their own. The setup-project skill carries them, with a copy of all 6 agents, in its own folder (`skills/setup-project/templates/` and `skills/setup-project/agents/`), so it works wherever it is installed. Those copies are not loaded as agents. In a repo, ask Copilot to "set up this repo for Copilot": it reads the repo (README, build files, CI, `git log`), runs the check command once, asks only what the repo cannot answer, writes `AGENTS.md` and copies the agents that repo needs into `.github/agents/`. It never overwrites an existing `AGENTS.md`; it proposes lines to add instead. It commits nothing. Run with `--update` after pulling a new kit version, so the skill's copies match it.
 
 To remove, delete the installed files it listed, and any `.bak` files next to them.
 

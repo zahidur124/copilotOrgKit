@@ -22,6 +22,14 @@ KIT = Path(__file__).resolve().parent
 RULES = KIT / "templates" / "AGENTS.md"
 # An .instructions.md file applies only to the files its applyTo matches; "**" makes the kit's rules apply everywhere.
 REPO_RULES_HEADER = b'---\napplyTo: "**"\n---\n\n'
+# Kit files a skill copies into a project. They are installed inside the skill's own folder, so the skill finds
+# them wherever it is installed and does not depend on where the kit was cloned.
+SKILL_FILES = {
+    "setup-project": [
+        (KIT / "templates" / "project" / "AGENTS.md", "templates/project-AGENTS.md"),
+        (KIT / "templates" / "research" / "AGENTS.md", "templates/research-AGENTS.md"),
+    ] + [(f, f"agents/{f.name}") for f in sorted((KIT / "agents").glob("*.agent.md"))],
+}
 
 
 def targets(mode, repo_dir, agent_names, skill_names):
@@ -43,6 +51,7 @@ def targets(mode, repo_dir, agent_names, skill_names):
     files = [(header + RULES.read_bytes(), rules), (KIT / "templates" / ".github" / "hooks" / "deny.json", hooks / "deny.json")]
     files += [(KIT / "agents" / f"{n}.agent.md", agents / f"{n}.agent.md") for n in agent_names]
     files += [(KIT / "skills" / n / "SKILL.md", skills / n / "SKILL.md") for n in skill_names]
+    files += [(src, skills / n / rel) for n in skill_names for src, rel in SKILL_FILES.get(n, [])]
     return [(c if isinstance(c, bytes) else c.read_bytes(), d) for c, d in files]
 
 

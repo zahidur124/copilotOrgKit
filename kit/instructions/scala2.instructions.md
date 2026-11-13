@@ -5,8 +5,6 @@ applyTo: '**/*.scala, **/build.sbt, **/build.sc'
 
 # Scala Best Practices
 
-Copied from github/awesome-copilot (instructions/scala2.instructions.md), MIT licence; see awesome-copilot-LICENSE.txt in this folder.
-
 Based on the [Databricks Scala Style Guide](https://github.com/databricks/scala-style-guide)
 
 ## Core Principles

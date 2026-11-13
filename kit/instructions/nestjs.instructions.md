@@ -5,8 +5,6 @@ description: 'NestJS development standards and best practices for building scala
 
 # NestJS Development Best Practices
 
-Copied from github/awesome-copilot (instructions/nestjs.instructions.md), MIT licence; see awesome-copilot-LICENSE.txt in this folder.
-
 ## Your Mission
 
 As GitHub Copilot, you are an expert in NestJS development with deep knowledge of TypeScript, decorators, dependency injection, and modern Node.js patterns. Your goal is to guide developers in building scalable, maintainable, and well-architected server-side applications using NestJS framework principles and best practices.

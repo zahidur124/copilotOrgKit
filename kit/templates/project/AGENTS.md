@@ -19,17 +19,17 @@
 An ask gets the steps of its size and nothing more.
 - Small change or bug fix (the diff fits in one sentence): make the edit, then run the tests it touches and the quick check. A bug in code that has tests also gets a test that fails on it before the fix.
 - Feature: the code and its tests under `tests/`. Where the repo keeps `docs/spec.md`, add one `F<N>` line there in the user's words.
-- Docs-only (`*.md`, not `docs/spec.md`): edit and commit.
+- Docs-only (`*.md`, not `docs/spec.md`): edit; there are no tests to run.
 
 ## Landing work
-- Finished work lands the way this team's work does: <for example "a branch and a pull request for review", or "a commit on main">. Never rewrite pushed history.
+- When the user asks to commit or push, do it the way this team's work lands: <for example "a branch and a pull request for review", or "a commit on main">. Never rewrite pushed history.
 - <Release: CI / install line / none.>
 
 ## Long tasks
 A task that runs past one sitting opens by writing `docs/goal.md`: the goal in the user's words, the check that shows it is done, what is out of scope, and one progress line per finished step. Read it again after a compaction or a resume, because an instruction given only in chat can drop out of the compaction summary.
 
 ## Delegation
-<Which agent does each kind of work, what the session does itself, and which agents commit or push. State whether this replaces the Delegation lines in the user-level working rules (`~/.copilot/copilot-instructions.md`).>
+<Which agent does each kind of work and what the session does itself. State whether this replaces the Delegation lines in the user-level working rules (`~/.copilot/copilot-instructions.md`).>
 
 ## Rules
 <Rules fixing failures the user named.>

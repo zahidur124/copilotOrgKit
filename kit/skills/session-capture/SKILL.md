@@ -18,4 +18,4 @@ description: At the end of a session, summarize what was done and propose the li
 
 4. **Propose, then stop.** Show each candidate as the exact line, the file it goes in, and one sentence on why a new session needs it. Write nothing until the user picks lines, because a file that loads into every session gets a new or changed rule only when the user asks for that rule.
 
-5. **Write the lines the user picked, word for word.** Then commit them.
+5. **Write the lines the user picked, word for word.**

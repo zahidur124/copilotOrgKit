@@ -198,7 +198,7 @@ Each skill is one file, `skills/<name>/SKILL.md`, with a `name` and a `descripti
   2. List what a new session would need: what this session had to work out that is not in the code, `git log` or the `AGENTS.md` files. Examples: a command that works, where something lives, a convention, a trap that cost time. It leaves out what an existing line already says, what only mattered to this task, and any rule drawn from a single failure.
   3. Give each candidate a home: how to work in the project goes to the project's `AGENTS.md`; decisions and reasons go to the decisions file; facts about a file, service or vendor go to the findings file; open work or a bug goes to the task list. Where the project has no such file, that home is skipped. Nothing goes in the user-level rules file (`~/.copilot/copilot-instructions.md`).
   4. Propose, then stop: each candidate as the exact line, the file it goes in, and one sentence on why. Nothing is written until you pick.
-  5. Write the lines you picked, word for word. Then commit them.
+  5. Write the lines you picked, word for word.
 - **Example:** "That's it for today. What should go in AGENTS.md from this session?"
 
 ## 5. The working rules (`templates/AGENTS.md`)
@@ -228,10 +228,10 @@ Neither is installed by `install.py`. Both contain `<placeholders>` in angle bra
   - **Start:** the user's request is the task. The task list is read only when the user asks what is next or says to carry on. Work stays inside the project folder.
   - **Commands:** the repo's check command (`<check command>`), the end-to-end command (`<end-to-end command>`), and any host steps.
   - **Records:** where state, spec (`docs/spec.md`), design (`docs/design.md`), decisions and findings live, and the rule to grep the findings file before changing a config, a deployment or code that talks to an outside service.
-  - **Work sizes:** an ask gets the steps of its size and nothing more. Small change or bug fix: edit, then the tests it touches and the quick check; a bug in tested code also gets a test that fails first. Feature: the code and its tests under `tests/`, plus one `F<N>` line in `docs/spec.md` where the repo keeps one. Docs-only: edit and commit.
-  - **Landing work:** fill in how this team's work lands (for example a branch and a pull request, or a commit on main) and `<Release: CI / install line / none.>`. Never rewrite pushed history.
+  - **Work sizes:** an ask gets the steps of its size and nothing more. Small change or bug fix: edit, then the tests it touches and the quick check; a bug in tested code also gets a test that fails first. Feature: the code and its tests under `tests/`, plus one `F<N>` line in `docs/spec.md` where the repo keeps one. Docs-only: edit, with no tests to run.
+  - **Landing work:** when the user asks to commit or push, do it the way this team's work lands (fill in, for example, a branch and a pull request, or a commit on main), and `<Release: CI / install line / none.>`. Never rewrite pushed history.
   - **Long tasks:** a task longer than one sitting opens by writing `docs/goal.md` (goal in the user's words, the check that shows it is done, what is out of scope, one progress line per finished step). Read it again after a compaction or resume, because "an instruction given only in chat can drop out of the compaction summary." (Compaction means the session shortens its own history to save room.)
-  - **Delegation:** a blank for which agent does each kind of work, what the session does itself, and which agents commit or push.
+  - **Delegation:** a blank for which agent does each kind of work, and what the session does itself.
   - **Rules:** a blank for rules fixing failures the user named.
 
 ### `templates/research/AGENTS.md`: starter rules for a research folder
@@ -241,7 +241,6 @@ Neither is installed by `install.py`. Both contain `<placeholders>` in angle bra
 - **Contents:**
   - **Record paths:** reports go in `research/<camelCase+DDMMYY>/report.md`. The `Ask:` line holds the user's words verbatim. The `Source:` line lists every file and command the report used.
   - **Task shape:** (1) run `grep -ril '<topic>' <research folder>` and reuse only a hit whose `Ask:` line equals the user's words verbatim; (2) hand the task to the `kit-researcher` agent with the user's words verbatim and the report path; (3) reply with the conclusion and never list the sources.
-  - **Git:** commit the report on main and push. No worktree.
 
 ## 7. The safety hook (`templates/.github/hooks/deny.json`)
 
@@ -297,7 +296,7 @@ These are points a presenter may be asked about.
 4. **Where `kit-researcher` writes its report.** The agent's description says the Report path is "a file under the project's docs/", and its text defaults to `docs/research/kit-researcher-<task-slug>.md`. The research template puts reports in `research/<camelCase+DDMMYY>/report.md`, which is not under `docs/`. The template's path is given in the brief, so the two can work together, but the files do not say so.
 5. **`kit-researcher` says it stops if a field is missing, yet allows no Report path.** The description says it "stops without searching if a field is missing" and also allows "no Report path". The body supplies a default path, so a missing Report path does not stop it.
 6. **Repo installs from before November 2026 put the rules in `AGENTS.md`.** The script now writes them to `.github/instructions/kit.instructions.md` and never touches `AGENTS.md`, so the project template can be copied there. In a repo whose `AGENTS.md` still starts with the kit's rules title, the script prints a warning to delete it, because otherwise Copilot reads the rules twice.
-7. **"Never commit" against commit steps.** All six agents say "Never commit". `session-capture` ends with "Then commit them", and the project template's Delegation section asks which agents "commit or push". Read together: the main session commits and the agents do not. The files never say this plainly.
+7. **Who commits.** All six agents say "Never commit". No template or skill commits or pushes on its own; the project template's Landing work line applies only when the user asks to commit or push.
 8. **The README does not say how to pick an agent or call a skill in Copilot.** It does not name the command or menu. The removed test script `kit/tests/live_check.sh` used `copilot --agent <name>`, but that is a deleted file, not documentation.
 9. **Terms the agents use without defining them.** The agent files mention a "findings file" with `@hash` rows, `done_when`, "the requester", and "Proposed decision:" lines. These come from a working style the kit does not explain. They only matter if the repo uses them.
 10. **The hook's `.env` rule and the rules text.** The deny reason says "use .env.example", which works because `.env.example` is allowed. A file named `.env.local` or `.env.production` is not matched.

@@ -11,6 +11,3 @@ Research from the code and documentation on this machine: prior art, library and
 1. Run `grep -ril '<topic>' <research folder>`. Reuse only a hit whose `Ask:` line equals the user's words verbatim.
 2. Hand the task to the `kit-researcher` agent with the user's words verbatim and the report path.
 3. Reply with the conclusion. Never list the sources.
-
-## Git
-Commit the report on main and push. No worktree.

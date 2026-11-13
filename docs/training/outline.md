@@ -196,7 +196,7 @@ Flow diagram of six boxes: Read the repo, Get examples, Work out steps, Ask only
 - Writes nothing until you pick lines
 
 **Speaker notes**
-It summarises the session, then lists what a new session would need that is not already in the code, `git log` or `AGENTS.md`. Each candidate comes with the exact line, the file it belongs in, and one sentence on why. It leaves out rules that come from a single failure. After you pick, it writes the lines word for word and commits them.
+It summarises the session, then lists what a new session would need that is not already in the code, `git log` or `AGENTS.md`. Each candidate comes with the exact line, the file it belongs in, and one sentence on why. It leaves out rules that come from a single failure. After you pick, it writes the lines word for word.
 
 **Visual**
 Mock-up of the proposal list: three rows, each with columns "Exact line", "File", "Why". Placeholder content is fine. Add the trigger phrase "That's it for today. What should go in AGENTS.md from this session?"
@@ -257,7 +257,7 @@ Table with two columns, "Group" and "One-line rule", six rows, taken from sectio
 - Not installed. Copy by hand, fill in the `<placeholders>`
 
 **Speaker notes**
-The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how to end a session, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, with the `Source:` line listing the files and commands the report used, and how to commit. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. A repo-mode install does not use `AGENTS.md`, so the template and the kit's rules sit side by side and Copilot reads both.
+The project template covers: how to start, the check commands, where records live, four work sizes (bug, small change, feature, docs-only), how work lands when you ask to commit or push, and a goal file for long tasks. The research template covers where reports go, the task shape using the `researcher` agent, with the `Source:` line listing the files and commands the report used. To adopt one, copy it to `AGENTS.md` in the repo or folder, then replace every `<placeholder>`. A repo-mode install does not use `AGENTS.md`, so the template and the kit's rules sit side by side and Copilot reads both.
 
 **Visual**
 Two side-by-side code excerpts, each about six lines, with the placeholders highlighted: from the project template, "The repo's check command: `<check command>`", and from the research template, "Reports: `research/<camelCase+DDMMYY>/report.md`".

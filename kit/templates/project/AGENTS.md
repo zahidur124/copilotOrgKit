@@ -3,6 +3,7 @@
 <What it is, who uses it, where it runs, and what the user sees when it works. Cite the `docs/spec.md` lines that say so; leave the citation out until they exist.>
 
 ## Start
+- If this branch has a state file (`.copilot/state/<branch>.md`, see Records), read it before starting, because it says where the last session on this branch stopped and what comes next.
 - The user's request is the task. Read the repo's task list only when the user asks what is next or says to carry on; the next task is then its first row that is neither done nor parked.
 - Scope: all work stays inside <project name>/; nothing outside it is edited.
 
@@ -13,6 +14,7 @@
 
 ## Records
 - State: the repo's task list, if it has one, and `git log`. Product `docs/spec.md`, design `docs/design.md`.
+- Session state: `.copilot/state/<branch>.md`, one file per branch, named from `git branch --show-current` with each `/` replaced by `-`. It stays out of git, so developers sharing the repo never overwrite each other's file and a session on one branch never reads another branch's next step. Before writing the first file, add `.copilot/state/` to the repo's `.gitignore` if it is not there. At the end of a task, or when the user wraps up, rewrite the file with where the work on this branch stands and the next step. Rewrite it rather than adding to it, and delete it once the branch is merged, because a session acts on whatever the file says.
 - Deliberate choices: when the user keeps a choice that would look like a mistake to someone reading the code, add a short comment beside it saying why, e.g. `# Pinned to 2.x: 3.x drops SSO support`, because the next session reads that code before it changes it.
 - Known facts: the repo's findings file, if it has one, not loaded at launch. Before changing a config, a deployment or code that talks to an outside service, grep it for the file, service or vendor name and read the matching rows. It holds one row per fact: when a fact changes, rewrite its row rather than adding a new one, and delete a row that is no longer true, because a session acts on whatever row it reads; the old version stays in `git log`.
 

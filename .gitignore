@@ -2,12 +2,6 @@ __pycache__/
 .pytest_cache/
 *.pyc
 
-# Claude Code files: personal to this Mac, never pushed to the work machine
-CLAUDE.md
-CLAUDE.local.md
-.claude/
-.mcp.json
-
 # macOS
 .DS_Store
 

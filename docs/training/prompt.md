@@ -22,7 +22,7 @@ Sources:
 Content rules:
 - Plain, direct language. Short sentences. Explain a term the first time it appears ("a custom agent is…").
 - At most four short points per slide. Detail goes in the speaker notes.
-- Show commands, file paths and file names in a monospace style, exactly as written in the sources (for example `./install.sh user`, `~/.copilot/agents/`, `AGENTS.md`).
+- Show commands, file paths and file names in a monospace style, exactly as written in the sources (for example `python install.py user`, `~/.copilot/agents/`, `AGENTS.md`).
 - Be honest on the guardrails slide: state the hook's limits as plainly as its protections.
 - No marketing tone, no stock-photo filler, no emoji.
 

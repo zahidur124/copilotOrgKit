@@ -10,14 +10,14 @@ Optional agents, skills, working rules and a safety hook for GitHub Copilot. Eac
 | `templates/project/AGENTS.md` | Starter rules for one project. Not installed: copy it into a repo as `AGENTS.md` and fill in the `<placeholders>`. |
 | `templates/research/AGENTS.md` | Starter rules for a research folder. Not installed: copy it into the folder as `AGENTS.md` and fill in the `<placeholders>`. |
 | `templates/.github/hooks/deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. |
-| `install.sh` | Copies the files above to where Copilot reads them. |
+| `install.py` | Copies the files above to where Copilot reads them. Needs Python 3.8 or later and nothing else, so it runs on Windows, macOS and Linux. |
 
 ## Install
 
-Clone this repo, then pick one:
+Clone this repo, then run one of these from its `kit/` folder (use `python3` or `py` if that is how Python is started on your machine):
 
-- `./install.sh user` copies everything into your Copilot config (`~/.copilot`, or `$COPILOT_HOME`). It applies in every repo you open, and nothing is committed anywhere. The rules go in `~/.copilot/copilot-instructions.md`, the hook in `~/.copilot/hooks/deny.json`, the agents in `~/.copilot/agents/` and the skills in `~/.copilot/skills/`.
-- `./install.sh repo [dir]` copies everything into one repo (default: the current directory, which must be the repo root): `AGENTS.md`, `.github/hooks/`, `.github/agents/` and `.github/skills/`. You decide whether to commit them.
+- `python install.py user` copies everything into your Copilot config (`~/.copilot`, or `$COPILOT_HOME`). It applies in every repo you open, and nothing is committed anywhere. The rules go in `~/.copilot/copilot-instructions.md`, the hook in `~/.copilot/hooks/deny.json`, the agents in `~/.copilot/agents/` and the skills in `~/.copilot/skills/`.
+- `python install.py repo [dir]` copies everything into one repo (default: the current directory, which must be the repo root): `AGENTS.md`, `.github/hooks/`, `.github/agents/` and `.github/skills/`. You decide whether to commit them.
 
 | Where you use Copilot | `user` install | `repo` install |
 |---|---|---|
@@ -27,7 +27,7 @@ Clone this repo, then pick one:
 
 VS Code's older Local harness reads agents and instructions from the VS Code profile, not from `~/.copilot`, and is removed in February 2027. Use the Copilot harness.
 
-A file that already exists is skipped and listed, never overwritten. To update, delete the old file and run the install again.
+A file identical to the kit's copy is left alone. A file that differs is skipped and listed, and the run ends by saying how many differ. To update, run the same command with `--update`: each file that differs is replaced, and the old one is kept beside it as `<name>.bak`.
 
 The two starter templates are not installed. Copy one into a repo by hand when you want it.
 

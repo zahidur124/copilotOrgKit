@@ -53,21 +53,21 @@ Three-part before and after: "Before: each person writes their own prompts and r
 - Working rules (`templates/AGENTS.md`)
 - 2 starter templates: project and research
 - 1 safety hook (`deny.json`)
-- `install.sh` copies it all into place
+- `install.py` copies it all into place
 
 **Speaker notes**
 This is the map for the rest of the session. Agents are for handing off a job. Skills are step-by-step procedures. The working rules set how Copilot behaves in a repo. The hook refuses a short list of risky actions. The two starter templates are not installed. You copy them by hand when you want them.
 
 **Visual**
-Table of the kit contents, one row per part, with the folder path in a code font: `agents/*.agent.md`, `skills/*/SKILL.md`, `templates/AGENTS.md`, `templates/project/AGENTS.md`, `templates/research/AGENTS.md`, `templates/.github/hooks/deny.json`, `install.sh`.
+Table of the kit contents, one row per part, with the folder path in a code font: `agents/*.agent.md`, `skills/*/SKILL.md`, `templates/AGENTS.md`, `templates/project/AGENTS.md`, `templates/research/AGENTS.md`, `templates/.github/hooks/deny.json`, `install.py`.
 
 ---
 
 ## Slide 4. Install: user mode or repo mode (3 min)
 
 **On the slide**
-- `./install.sh user` : your Copilot config (`~/.copilot`), every repo you open
-- `./install.sh repo [dir]` : one repo, your choice whether to commit
+- `python install.py user` : your Copilot config (`~/.copilot`), every repo you open
+- `python install.py repo [dir]` : one repo, your choice whether to commit
 - Same files either way
 
 **Speaker notes**
@@ -81,8 +81,8 @@ Two-column table: rows for rules, hook, agents, skills; columns for user and rep
 ## Slide 5. Install: what it skips, how to update and remove (1 min)
 
 **On the slide**
-- Existing files are skipped and listed, never overwritten
-- Update: delete the old file, run install again
+- Existing files are skipped and listed, never overwritten by default
+- Update: run it again with `--update`; old files are kept as `.bak`
 - Remove: delete the files the script listed
 
 **Speaker notes**
@@ -218,7 +218,7 @@ Live terminal or editor. Add a side panel with the "What to notice" list for the
 
 ### Demo script
 
-Before the session: install in user mode or repo mode (`./install.sh repo <sample repo>`). Open Copilot in the sample repo. Check once that the skill starts.
+Before the session: install in user mode or repo mode (`python install.py repo <sample repo>`). Open Copilot in the sample repo. Check once that the skill starts.
 
 1. **Type the rough idea** (keep it loose on purpose):
    > Interview me about this idea: let customers download their order history as a CSV file.
@@ -301,7 +301,7 @@ Two-column "Catches / Does not catch" table. Catches: `git push --force`, `rm -r
 ## Slide 17. Getting started checklist (1 min)
 
 **On the slide**
-- Clone the repo; run `./install.sh user` or `./install.sh repo`
+- Clone the repo; run `python install.py user` or `python install.py repo`
 - Try the hook by hand with one blocked and one allowed command
 - Run one agent with a full brief; run one skill
 - Copy a starter template into one repo and fill in the placeholders

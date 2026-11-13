@@ -30,7 +30,7 @@ The kit is a folder of optional files for GitHub Copilot. The README describes i
 | `templates/project/AGENTS.md` | Starter rules for one project. Not installed. |
 | `templates/research/AGENTS.md` | Starter rules for a research folder. Not installed. |
 | `templates/.github/hooks/deny.json` | A safety hook that refuses a short list of risky actions. |
-| `install.sh` | Copies the installable files to where Copilot reads them. |
+| `install.py` | Copies the installable files to where Copilot reads them. |
 
 Why it exists, as far as the files say: the working rules ask for a finished task with a stated scope, for claims of done only about what was run and seen working, for changes that match the code around them, and for no force-push or reset of work that is not yours. The agents and skills put those habits into reusable form. The README does not give a company-level reason beyond that. The presenter should add the company's own reason.
 
@@ -42,11 +42,11 @@ What changed on 2026-11-12 (commit `c95c3f2`, "Port worker, researcher, skills a
 
 ## 2. Install
 
-Run `install.sh` from the `kit/` folder of a clone of this repo. It needs `bash`. The usage line is `usage: ./install.sh user | repo [dir]`. Any other argument prints that line and exits with code 2.
+Run `install.py` from the `kit/` folder of a clone of this repo. It needs Python 3.8 or later and nothing else, so it runs on Windows, macOS and Linux; start it with `python`, `python3` or `py`, whichever your machine uses. The usage is `install.py user | repo [dir] [--update]`. A missing or wrong argument prints the usage and exits with code 2.
 
 ### Two modes
 
-| | `./install.sh user` | `./install.sh repo [dir]` |
+| | `python install.py user` | `python install.py repo [dir]` |
 |---|---|---|
 | Applies to | Every repo you open | One repo only |
 | Target folder | `~/.copilot`, or `$COPILOT_HOME` if set | `dir`, default is the current directory |
@@ -56,22 +56,22 @@ Run `install.sh` from the `kit/` folder of a clone of this repo. It needs `bash`
 | Skills | `~/.copilot/skills/<name>/SKILL.md` | `<dir>/.github/skills/<name>/SKILL.md` |
 | Committed? | Nothing is committed anywhere | You decide whether to commit the new files |
 
-The README does not list the user-mode hook path. It comes from `install.sh` (`hooks=$dest/hooks`).
-
 Both modes copy the same set: the working rules, the hook, all 6 agents and all 3 skills. The two starter templates are never installed. Copy one by hand when you want it.
 
-### Existing files are skipped, not overwritten
+### Existing files: left alone unless you ask to update
 
 For each file the script prints one line:
 
-- `installed: <path>` when it copied the file.
-- `skipped, already exists: <path>` when the file was already there. It is left alone.
+- `installed: <path>` when the file was missing and it copied it.
+- `unchanged: <path>` when the file is already identical to the kit's copy.
+- `skipped, differs from the kit: <path>` when the file is there but different. It is left alone, and the run ends by saying how many files differ.
+- `replaced: <path> (old file kept as <name>.bak)` when you ran with `--update` and the file differed.
 
-So running the script twice is safe. It also means that an existing `AGENTS.md` or `copilot-instructions.md` of yours is never replaced.
+So running the script twice is safe. Without `--update`, an existing `AGENTS.md` or `copilot-instructions.md` is never replaced.
 
 ### Update and remove
 
-- **Update:** delete the old file, then run the install again. Without the delete, the script skips it.
+- **Update:** run the same install command with `--update`. Each installed file that differs from the kit is replaced, and the old one is kept beside it as `<name>.bak`, so any lines you added can be copied back.
 - **Remove:** "delete the installed files it listed." That means the paths on the `installed:` lines. There is no uninstall command.
 
 ## 3. The six agents
@@ -218,7 +218,7 @@ The rules themselves do not mention the deny hook. The hook is a separate file, 
 
 ## 6. The two starter templates
 
-Neither is installed by `install.sh`. Both contain `<placeholders>` in angle brackets for you to fill in.
+Neither is installed by `install.py`. Both contain `<placeholders>` in angle brackets for you to fill in.
 
 ### `templates/project/AGENTS.md`: starter rules for one project
 
@@ -296,7 +296,7 @@ These are points a presenter may be asked about.
 3. **The rules name `worker` only.** `templates/AGENTS.md` (Handing work to agents) names the `worker` agent and no other. `templates/project/AGENTS.md` (Delegation) is a blank for which agent does each kind of work, and asks the user to state whether it replaces "the Delegation lines in the user-level working rules". The user-level rules no longer have a section called Delegation; the matching section is Handing work to agents.
 4. **Where `kit-researcher` writes its report.** The agent's description says the Report path is "a file under the project's docs/", and its text defaults to `docs/research/kit-researcher-<task-slug>.md`. The research template puts reports in `research/<camelCase+DDMMYY>/report.md`, which is not under `docs/`. The template's path is given in the brief, so the two can work together, but the files do not say so.
 5. **`kit-researcher` says it stops if a field is missing, yet allows no Report path.** The description says it "stops without searching if a field is missing" and also allows "no Report path". The body supplies a default path, so a missing Report path does not stop it.
-6. **Repo-mode install and the project template both want `AGENTS.md`.** `./install.sh repo` writes the working rules to `<dir>/AGENTS.md`. The README says to copy `templates/project/AGENTS.md` into a repo "as `AGENTS.md`". If the install already created the file, the template cannot be copied over it without overwriting. The files do not say how to combine them. User mode has no such clash.
+6. **Repo-mode install and the project template both want `AGENTS.md`.** `python install.py repo` writes the working rules to `<dir>/AGENTS.md`. The README says to copy `templates/project/AGENTS.md` into a repo "as `AGENTS.md`". If the install already created the file, the template cannot be copied over it without overwriting, and a later `--update` would replace the filled-in template with the working rules (keeping it as `AGENTS.md.bak`). The files do not say how to combine them. User mode has no such clash.
 7. **"Never commit" against commit steps.** All six agents say "Never commit". `session-capture` ends with "Then commit them", and the project template's Delegation section asks which agents "commit or push". Read together: the main session commits and the agents do not. The files never say this plainly.
 8. **The README does not say how to pick an agent or call a skill in Copilot.** It does not name the command or menu. The removed test script `kit/tests/live_check.sh` used `copilot --agent <name>`, but that is a deleted file, not documentation.
 9. **Terms the agents use without defining them.** The agent files mention a "findings file" with `@hash` rows, `done_when`, "the requester", and "Proposed decision:" lines. These come from a working style the kit does not explain. They only matter if the repo uses them.

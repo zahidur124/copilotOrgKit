@@ -19,10 +19,9 @@ KIT = Path(__file__).resolve().parent / "kit"
 RULES = KIT / "templates" / "AGENTS.md"
 PROJECT_TEMPLATE = KIT / "templates" / "project" / "AGENTS.md"
 HOOK = KIT / "templates" / ".github" / "hooks" / "deny.json"
-# Rules files copied from github/awesome-copilot: instructions/<name>.instructions.md, which Copilot loads for the files
-# their applyTo matches. Their MIT licence is installed beside them.
+# The kit's language rules files: instructions/<name>.instructions.md, which Copilot loads for the files their applyTo
+# matches.
 INSTRUCTIONS = KIT / "instructions"
-INSTRUCTIONS_LICENSE = INSTRUCTIONS / "awesome-copilot-LICENSE.txt"
 # The packs the scripts offer, in the order they are listed: (name, description, skills, rules files). Picking several
 # installs the union. install-repo.py installs a pack's skills and rules files; install-user.py only its skills.
 CODE_SKILLS = ["build-and-test", "write-tests", "dependency-upgrade", "api-contract-check"]
@@ -31,10 +30,10 @@ PACKS = [
      CODE_SKILLS, []),
     ("java", "Java: the code pack, plus Spring Boot rules for .java files", CODE_SKILLS, ["springboot"]),
     ("node", "Node: the code pack, plus NestJS rules for .ts, .js and .json files", CODE_SKILLS, ["nestjs"]),
-    ("scala", "Scala: the code pack and the sbt-and-play skill, plus Scala 2 rules for .scala and build.sbt files",
-     CODE_SKILLS + ["sbt-and-play"], ["scala2"]),
+    ("scala", "Scala: the code pack and the sbt-and-play skill, plus Scala 2 and 3 rules for .scala and build.sbt files",
+     CODE_SKILLS + ["sbt-and-play"], ["scala"]),
     ("python", "Python: the code pack (no Python rules yet)", CODE_SKILLS, []),
-    ("flutter", "Flutter: the code pack, plus Dart and Flutter rules for .dart files", CODE_SKILLS, ["dart-n-flutter"]),
+    ("flutter", "Flutter: the code pack, plus Dart and Flutter rules for .dart files", CODE_SKILLS, ["flutter"]),
     ("documents", "Documents: read Word, PDF, PowerPoint and Excel files, write Word and PowerPoint, work on PDFs and CSV files",
      ["read-documents", "csv-analysis", "pptx", "docx", "pdf"], []),
     ("planning", "Planning and writing: interview for a spec, draft from examples, capture a session, set up a repo's AGENTS.md",
@@ -308,8 +307,6 @@ def file_list(extra, base, agent_names, skill_names, rule_names=()):
     files = list(extra)
     files += [(KIT / "agents" / f"{n}.agent.md", agents / f"{n}.agent.md") for n in agent_names]
     files += [(INSTRUCTIONS / f"{n}.instructions.md", instructions / f"{n}.instructions.md") for n in rule_names]
-    if rule_names:
-        files.append((INSTRUCTIONS_LICENSE, instructions / INSTRUCTIONS_LICENSE.name))
     for n in skill_names:
         folder = KIT / "skills" / n
         files.append((folder / "SKILL.md", skills / n / "SKILL.md"))

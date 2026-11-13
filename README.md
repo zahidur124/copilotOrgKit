@@ -6,7 +6,7 @@ Optional agents, skills, working rules, language rules files and a safety hook f
 
 You need Python 3.8 or later. Use `python3` or `py` in place of `python` if that is how Python starts on your machine.
 
-1. Clone this repo: `git clone https://github.com/zahidur124/copilotOrgKit.git`, then `cd copilotOrgKit`.
+1. Clone this repo and open a terminal in its root folder.
 2. Install for yourself, once: `python install-user.py`. Press Enter at each question to take everything. The rules, agents and skills then apply in every repo you open.
 3. Set up a repo, once per repo: `python install-repo.py ~/code/my-service`, with the path to your repo. Press Enter to take the suggestions. This adds the safety hook, agents, skills and an `AGENTS.md` to that repo.
 4. Open that repo in Copilot and ask it to "set up this repo for Copilot". It fills in the `AGENTS.md` from the repo's code and asks you what it cannot work out.

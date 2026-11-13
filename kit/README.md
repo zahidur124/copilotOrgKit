@@ -19,6 +19,8 @@ Clone this repo, then run one of these from its `kit/` folder (use `python3` or 
 - `python install.py user` copies everything into your Copilot config (`~/.copilot`, or `$COPILOT_HOME`). It applies in every repo you open, and nothing is committed anywhere. The rules go in `~/.copilot/copilot-instructions.md`, the hook in `~/.copilot/hooks/deny.json`, the agents in `~/.copilot/agents/` and the skills in `~/.copilot/skills/`.
 - `python install.py repo [dir]` copies everything into one repo (default: the current directory, which must be the repo root): the rules in `.github/instructions/kit.instructions.md`, and `.github/hooks/`, `.github/agents/` and `.github/skills/`. You decide whether to commit them. The repo's own `AGENTS.md` is never touched, so the project template can live there; Copilot reads both. If an earlier install put the kit's rules in `AGENTS.md`, the script warns you to delete it, so Copilot does not read the rules twice.
 
+Both install all 6 agents unless you name the ones you want with `--agents`, for example `python install.py user --agents worker,reader`. The working rules hand work to `worker`, so the script tells you if you leave it out.
+
 | Where you use Copilot | `user` install | `repo` install |
 |---|---|---|
 | Copilot CLI | Yes | Yes |

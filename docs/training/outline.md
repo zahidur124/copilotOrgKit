@@ -68,7 +68,7 @@ Table of the kit contents, one row per part, with the folder path in a code font
 **On the slide**
 - `python install.py user` : your Copilot config (`~/.copilot`), every repo you open
 - `python install.py repo [dir]` : one repo, your choice whether to commit
-- Same files either way
+- Same files either way; `--agents worker,reader` installs only the agents you name
 
 **Speaker notes**
 Run the script from the `kit/` folder of a clone. User mode puts the rules in `~/.copilot/copilot-instructions.md`, agents in `~/.copilot/agents/`, skills in `~/.copilot/skills/`, and the hook in `~/.copilot/hooks/`. Repo mode puts the rules in `.github/instructions/kit.instructions.md`, and the hook, agents and skills under `.github/`; the repo's own `AGENTS.md` is left alone. Nothing is committed for you in either mode. If `COPILOT_HOME` is set, user mode uses it instead of `~/.copilot`.

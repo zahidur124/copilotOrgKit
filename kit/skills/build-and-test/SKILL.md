@@ -1,6 +1,6 @@
 ---
 name: build-and-test
-description: Find and run the repo's own build, test, lint and format commands - from its AGENTS.md, README and CI config first, then its build files, wrapper and lockfile - and report each command run and its result. Use when about to say a change is done, when asked to build, test, lint or check a repo, or when unsure which command a Node.js, Java, Scala, Python or Flutter repo uses.
+description: Find and run the repo's own build, test, lint and format commands - from its AGENTS.md, README and Jenkinsfile first, then its build files, wrapper and lockfile - run them locally, and report each command run and its result. Use when about to say a change is done, when asked to build, test, lint or check a repo, or when unsure which command a Node.js, Java, Scala, Python or Flutter repo uses.
 ---
 
 # build-and-test
@@ -8,17 +8,18 @@ description: Find and run the repo's own build, test, lint and format commands -
 The commonest failure in these repos is running the wrong command: global `mvn` instead of `./mvnw`, `npm install` in a pnpm repo, a fresh `sbt` per command, `pytest` outside the venv. A wrong command passes or fails for reasons that have nothing to do with the change. So find what the repo itself runs, run that, and report what ran.
 
 Rules that hold for every step:
-- **The repo's own commands win.** A command in AGENTS.md, README, CONTRIBUTING, a Makefile or CI beats one worked out from build files.
+- **Everything runs locally.** Build and test on this machine only. The Jenkinsfile is read for its commands, never run: do not start, trigger or call a Jenkins job.
+- **The repo's own commands win.** A command in AGENTS.md, README, CONTRIBUTING, a Makefile or the Jenkinsfile beats one worked out from build files.
 - **Use the repo's wrapper and the tool its lockfile names**, never a global tool or another package manager. An install that changes the lockfile means the wrong tool or command: say so, and leave the lockfile out of your change.
 - **Never make a failure go away** by skipping, deleting or loosening a test, raising a timeout, or adding `-DskipTests`, `-x test`, `--no-verify`, `.skip`, `@Disabled`, `@Ignore` or `pytest.mark.skip`. Fix the code, or report the failure.
 - **Report only what ran.** A command you did not run is not passing.
 - **Web search is off.** Work from the output, the repo and the installed packages.
 - **Downloads go through the company mirror and may be blocked.** On a 401, 403, 407, timeout, certificate error or "could not resolve", stop and report the command and the error line, with internal hostnames left out. Do not edit `.npmrc`, `.yarnrc.yml`, `settings.xml`, `gradle.properties`, `init.gradle`, `pip.conf` or `uv.toml`, and do not add `--registry`, `--index-url`, `--trusted-host` or `strict-ssl=false`.
 
-1. **Find the commands the repo already uses.** Read `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, any `Makefile`, `justfile` or `Taskfile.yml`, then the CI config: `.github/workflows/*.yml`, `Jenkinsfile`, `.gitlab-ci.yml`, `azure-pipelines.yml`, `bitbucket-pipelines.yml`. CI shows the exact steps, the tool versions (`java-version`, `node-version`, `flutter-version`) and the services tests need. A step that needs something you lack (a secret, a database, Docker) cannot run here: say so.
+1. **Find the commands the repo already uses.** Read `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, any `Makefile`, `justfile` or `Taskfile.yml`, then the `Jenkinsfile`. Its `sh` and `bat` steps show the exact commands, its `tools` block, `docker` agent image or tool wrappers show the versions (JDK, Node, Flutter), and its `withCredentials` blocks and services show what the tests need. Run those commands locally. A step that needs something you lack (Jenkins credentials, a database, Docker) cannot run here: say so. When a stage only calls a shared-library step whose commands the Jenkinsfile does not show (for example `buildMavenApp()`), take the commands from step 2 instead.
 
    ```
-   rg -n "run:|sh |mvnw|gradlew|sbt|npm|pnpm|yarn|uv |poetry|pytest|ruff|flutter|dart " .github/workflows Jenkinsfile .gitlab-ci.yml 2>/dev/null | head -40
+   rg -n "sh |bat |tools|image|mvnw|gradlew|sbt|npm|pnpm|yarn|uv |poetry|pytest|ruff|flutter|dart " Jenkinsfile 2>/dev/null | head -40
    ```
 
 2. **Fill the gaps from the build files.** Only for what step 1 did not settle.
@@ -45,7 +46,7 @@ Rules that hold for every step:
    sbt --client shutdown                            # stop the server when done
    ```
 
-   **Python.** The lockfile names the tool: `uv.lock` uv, `poetry.lock` Poetry, `requirements*.txt` a venv and pip; with `pyproject.toml` alone, read its `[build-system]` and `[tool.*]` tables. Use `tox` or `nox` when CI does. Reuse an existing `.venv`. Run ruff or mypy only when the repo configures them (`[tool.ruff]`, `ruff.toml`, `[tool.mypy]`, `mypy.ini`, `.pre-commit-config.yaml`), through the same tool.
+   **Python.** The lockfile names the tool: `uv.lock` uv, `poetry.lock` Poetry, `requirements*.txt` a venv and pip; with `pyproject.toml` alone, read its `[build-system]` and `[tool.*]` tables. Use `tox` or `nox` when the Jenkinsfile does. Reuse an existing `.venv`. Run ruff or mypy only when the repo configures them (`[tool.ruff]`, `ruff.toml`, `[tool.mypy]`, `mypy.ini`, `.pre-commit-config.yaml`), through the same tool.
    ```
    uv sync && uv run pytest
    poetry install && poetry run pytest
@@ -63,7 +64,7 @@ Rules that hold for every step:
    flutter test test/orders/order_service_test.dart
    ```
 
-3. **Run the narrowest check first, then widen.** Find what changed with `git diff --name-only` and `git status --short`, then run the tests for those files only (one file, class or name filter). When they pass, run the module's or package's whole suite, then lint, format check, type check or analyze, then the full build CI runs. Name any wider step you left out and why (too slow, needs Docker or a service).
+3. **Run the narrowest check first, then widen.** Find what changed with `git diff --name-only` and `git status --short`, then run the tests for those files only (one file, class or name filter). When they pass, run the module's or package's whole suite, then lint, format check, type check or analyze, then the full build the Jenkinsfile runs, locally. Name any wider step you left out and why (too slow, needs Docker or a service).
 
 4. **Read the real failure.** Long output hides the cause, so write it to a log file in a temporary folder outside the repo and search it. The cause is the first error, not the last line: Maven's first `[ERROR]`, Gradle's `What went wrong`, sbt's first `[error]`, pytest's `short test summary info`, the `FAIL` block in Jest or Vitest, Flutter's `EXCEPTION CAUGHT`. Decide whether it comes from your change, from code you did not touch (it may have failed before your change: say so, with the output, and do not fix it unasked), or from the machine (wrong JDK or Node version, Docker not running, blocked download).
 

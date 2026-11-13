@@ -2,7 +2,9 @@
 
 Optional agents, skills, working rules, language rules files and a safety hook for GitHub Copilot. Each developer chooses whether to install them; nothing is pushed to any repo.
 
-| Path | What it is |
+The kit's files are in the `kit/` folder, and the paths in the table below are inside it. The two install scripts are in the repo's root folder (see Install).
+
+| Path in `kit/` | What it is |
 |---|---|
 | `agents/*.agent.md` | 8 custom agents: worker, kit-researcher, reader, verifier, kit-reviewer, builder, data-analyst, document-reviewer. The two `kit-` names keep them apart from Copilot CLI's built-in `research` and `code-review` agents. |
 | `skills/*/SKILL.md` | 14 skills: draft-from-examples, spec-interview, session-capture, setup-project, read-documents, csv-analysis, pptx, docx, pdf, build-and-test, write-tests, api-contract-check, dependency-upgrade, sbt-and-play. The install scripts offer them in packs (see Install). A skill's other files (such as `csv-analysis/profile_csv.py` and `read-documents/to_markdown.py`) are installed beside its `SKILL.md`. |
@@ -23,9 +25,10 @@ Optional agents, skills, working rules, language rules files and a safety hook f
 | `templates/project/AGENTS.md` | Starter context for one project: what it is and does, its layout and build and test commands, what is out of scope, its own rules, a per-branch state file, a goal file for long tasks, the agents installed in the repo, and how work lands. `install-repo.py` copies it into a repo as `AGENTS.md` with its `<placeholders>` and the job of each agent you pick, and the setup-project skill fills them in from the repo; or fill them in by hand. |
 | `templates/research/AGENTS.md` | Starter rules for a research folder. Used the same way as the project template. |
 | `templates/.github/hooks/deny.json` | A `preToolUse` hook that denies force-push, `git reset --hard`, `rm -rf` on a root, home or whole directory, and `.env` or private key files. `install-repo.py` installs it in each repo. |
-| `install-user.py`, `install-repo.py` (in the repo's root folder, beside `kit/`) | Copy the files above to where Copilot reads them: into your own Copilot config, or into one repo. Both use `installer.py`, which is not run on its own. They need Python 3.8 or later and nothing else, so they run on Windows, macOS and Linux. |
 
 ## Install
+
+`install-user.py` and `install-repo.py` copy the files above to where Copilot reads them: into your own Copilot config, or into one repo. Both use `installer.py`, which is not run on its own. They need Python 3.8 or later and nothing else, so they run on Windows, macOS and Linux.
 
 Clone this repo and run these from its root folder (use `python3` or `py` if that is how Python is started on your machine). The two scripts install different things, so use both: one for you, one per repo.
 

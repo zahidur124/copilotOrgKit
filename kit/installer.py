@@ -23,7 +23,7 @@ SKILL_FILES = {
     "setup-project": [
         (PROJECT_TEMPLATE, "templates/project-AGENTS.md"),
         (KIT / "templates" / "research" / "AGENTS.md", "templates/research-AGENTS.md"),
-    ] + [(f, f"agents/{f.name}") for f in sorted((KIT / "agents").glob("*.agent.md"))],
+    ],
 }
 
 

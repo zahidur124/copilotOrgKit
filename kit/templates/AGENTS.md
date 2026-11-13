@@ -3,11 +3,18 @@
 These rules apply in every Copilot CLI and VS Code agent session on this machine. A repository's own AGENTS.md says what that project needs; where the two differ, follow the repository.
 
 ## The task
-- A task is the result the user asked for, finished: every step the repository's AGENTS.md says that kind of work includes, and anything the result does not work without. Anything it works without, such as an extra test, a refactor or a cleanup, is named at the end as "Also: <step> — <why>", not done, because the user decides scope.
+- A task is the result the user asked for, finished, with anything the result does not work without. Anything it works without, such as an extra test, a refactor or a cleanup, is named at the end as "Also: <step> — <why>", not done, because the user decides scope.
 - Once the user has confirmed a plan, that plan is the task.
 - When a request can be read more than one way, take the likeliest reading and act. Ask first only when the readings lead to different work.
 - If a request rests on something the code shows is not true, say so in one sentence and ask before doing the work.
 - A question gets an answer, not an edit.
+
+## Scope
+- Change only the code the task needs. Nearby code that could be better (names, formatting, structure, an unrelated bug) stays as it is and is named under "Also".
+- Add no dependency, config, file, abstraction or option the task does not need.
+- Write no plan, summary or notes file the user did not ask for. Report in the reply.
+- Edit nothing outside the repository you are working in.
+- What the repository's AGENTS.md marks as out of scope is left alone, even when the task seems to reach it; say so instead.
 
 ## Claims
 - Say done, fixed or passing only about what you ran and saw work in this session. For anything else, say what you changed and that it was not checked.

@@ -1,38 +1,18 @@
 # <project name>
 
-<What it is, who uses it, where it runs, and what the user sees when it works. Cite the `docs/spec.md` lines that say so; leave the citation out until they exist.>
+<What the project is and does, who uses it and where it runs, in two or three sentences.>
 
-## Start
-- If this branch has a state file (`.copilot/state/<branch>.md`, see Records), read it before starting, because it says where the last session on this branch stopped and what comes next.
-- The user's request is the task. Read the repo's task list only when the user asks what is next or says to carry on; the next task is then its first row that is neither done nor parked.
-- Scope: all work stays inside <project name>/; nothing outside it is edited.
+## Layout
+- <Language, framework and build tool, for example "Java 21, Spring Boot, Gradle".>
+- <Each main folder and what it holds, one line each.>
+- Build: `<build command>`. Tests: `<test command>`.
 
-## Commands
-- The repo's check command: `<check command>`. After each change: the quick check and the tests the change touches.
-- End-to-end gate: `<end-to-end command>` (<what it walks>).
-- <Host steps, e.g. "a migration is applied to <host> before the push".>
-
-## Records
-- State: the repo's task list, if it has one, and `git log`. Product `docs/spec.md`, design `docs/design.md`.
-- Session state: `.copilot/state/<branch>.md`, one file per branch, named from `git branch --show-current` with each `/` replaced by `-`. It stays out of git, so developers sharing the repo never overwrite each other's file and a session on one branch never reads another branch's next step. Before writing the first file, add `.copilot/state/` to the repo's `.gitignore` if it is not there. At the end of a task, or when the user wraps up, rewrite the file with where the work on this branch stands and the next step. Rewrite it rather than adding to it, and delete it once the branch is merged, because a session acts on whatever the file says.
-- Deliberate choices: when the user keeps a choice that would look like a mistake to someone reading the code, add a short comment beside it saying why, e.g. `# Pinned to 2.x: 3.x drops SSO support`, because the next session reads that code before it changes it.
-- Known facts: the repo's findings file, if it has one, not loaded at launch. Before changing a config, a deployment or code that talks to an outside service, grep it for the file, service or vendor name and read the matching rows. It holds one row per fact: when a fact changes, rewrite its row rather than adding a new one, and delete a row that is no longer true, because a session acts on whatever row it reads; the old version stays in `git log`.
-
-## Work sizes
-An ask gets the steps of its size and nothing more.
-- Small change or bug fix (the diff fits in one sentence): make the edit, then run the tests it touches and the quick check. A bug in code that has tests also gets a test that fails on it before the fix.
-- Feature: the code and its tests under `tests/`. Where the repo keeps `docs/spec.md`, add one `F<N>` line there in the user's words.
-- Docs-only (`*.md`, not `docs/spec.md`): edit; there are no tests to run.
-
-## Landing work
-- When the user asks to commit or push, do it the way this team's work lands: <for example "a branch and a pull request for review", or "a commit on main">. Never rewrite pushed history.
-- <Release: CI / install line / none.>
-
-## Long tasks
-A task that runs past one sitting opens by writing `docs/goal.md`: the goal in the user's words, the check that shows it is done, what is out of scope, and one progress line per finished step. Read it again after a compaction or a resume, because an instruction given only in chat can drop out of the compaction summary.
-
-## Delegation
-<Which agent does each kind of work and what the session does itself. State whether this replaces the Delegation lines in the user-level working rules (`~/.copilot/copilot-instructions.md`).>
+## Out of scope
+- <What a session leaves alone in this repo, for example generated code (regenerate it instead), vendored code, another team's module, or migrations that are already applied.>
 
 ## Rules
-<Rules fixing failures the user named.>
+- <How this code base does things a newcomer would get wrong, such as error handling, logging or where tests go.>
+- <Traps that cost time, such as a slow step, a flaky test, or a setting that must stay as it is, and why.>
+
+## Landing work
+- When the user asks to commit or push: <for example "a branch and a pull request for review", or "a commit on main">. Never rewrite pushed history.

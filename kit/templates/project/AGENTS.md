@@ -12,7 +12,8 @@
 - <Host steps, e.g. "a migration is applied to <host> before the push".>
 
 ## Records
-- State: the repo's task list, if it has one, and `git log`. Product `docs/spec.md`, design `docs/design.md`, and a decisions file, if the repo has one.
+- State: the repo's task list, if it has one, and `git log`. Product `docs/spec.md`, design `docs/design.md`.
+- Deliberate choices: when the user keeps a choice that would look like a mistake to someone reading the code, add a short comment beside it saying why, e.g. `# Pinned to 2.x: 3.x drops SSO support`, because the next session reads that code before it changes it.
 - Known facts: the repo's findings file, if it has one, not loaded at launch. Before changing a config, a deployment or code that talks to an outside service, grep it for the file, service or vendor name and read the matching rows.
 
 ## Work sizes

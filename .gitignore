@@ -10,3 +10,6 @@ CLAUDE.local.md
 
 # macOS
 .DS_Store
+
+# Training decks built from docs/training/, kept out of the repo
+*.pptx

@@ -179,7 +179,7 @@ Each skill is one file, `skills/<name>/SKILL.md`, with a `name` and a `descripti
 ### spec-interview
 
 - **What it does:** turns a rough feature idea into a written spec. It gets real examples from you, works out the steps itself, asks you only what the steps cannot settle, then writes the spec file.
-- **Triggers:** you want a spec, requirements or a PRD (product requirements document) for a feature; you say "interview me" about an idea; or you describe a feature too loosely to build from.
+- **Triggers:** you want a spec, requirements or a PRD (product requirements document) for a feature; or you say "interview me" about an idea.
 - **Steps:**
   1. Read before asking: the project's `AGENTS.md`, its existing spec and design files, and the code the feature touches. It answers what the repo can answer, so every question is one only you can settle.
   2. Get examples first: before any other question, real cases from you. A time the feature would have helped, what came in, and what you would have wanted to see. It offers cases found in the repo, its data or its history for you to confirm or correct, and writes each in your words.
@@ -225,12 +225,12 @@ Neither is installed by `install.py`. Both contain `<placeholders>` in angle bra
 - **For:** a single project repo.
 - **Adopt:** copy it into the repo as `AGENTS.md`, then replace each `<placeholder>`.
 - **Sections:**
-  - **Start:** read the task list (if any) and `git log --oneline -5`; the next row is the first that is neither done nor parked. Work stays inside the project folder.
+  - **Start:** the user's request is the task. The task list is read only when the user asks what is next or says to carry on. Work stays inside the project folder.
   - **Commands:** the repo's check command (`<check command>`), the end-to-end command (`<end-to-end command>`), and any host steps.
-  - **Records:** where state, spec (`docs/spec.md`), design (`docs/design.md`), decisions and findings live, and the rule to grep the findings file before changing code, config or a deployment.
-  - **Work sizes:** every ask is one of four. Bug: branch `fix-<slug>`, a test that fails first, cause in one sentence, smallest fix. Small change: branch, edit, update tests, run them and the quick check. Feature: one `F<N>` line in `docs/spec.md`, branch `f<N>-<slug>`, tests under `tests/` then code. Docs-only: commit on main, push.
-  - **Session end:** merge each finished branch to main with `--ff-only`, push to `<remote>`, delete the branch, never rewrite pushed history. A worktree path is described. Fill in `<Worktree: yes or no.>` and `<Release: CI / install line / none.>`.
-  - **Goal file:** a Feature, or any task longer than one sitting, opens by writing `docs/goal.md` (goal in the user's words, the check that shows it is done, what is out of scope, one progress line per finished step). Read it again after a compaction or resume, because "an instruction given only in chat can drop out of the compaction summary." (Compaction means the session shortens its own history to save room.)
+  - **Records:** where state, spec (`docs/spec.md`), design (`docs/design.md`), decisions and findings live, and the rule to grep the findings file before changing a config, a deployment or code that talks to an outside service.
+  - **Work sizes:** an ask gets the steps of its size and nothing more. Small change or bug fix: edit, then the tests it touches and the quick check; a bug in tested code also gets a test that fails first. Feature: the code and its tests under `tests/`, plus one `F<N>` line in `docs/spec.md` where the repo keeps one. Docs-only: edit and commit.
+  - **Landing work:** fill in how this team's work lands (for example a branch and a pull request, or a commit on main) and `<Release: CI / install line / none.>`. Never rewrite pushed history.
+  - **Long tasks:** a task longer than one sitting opens by writing `docs/goal.md` (goal in the user's words, the check that shows it is done, what is out of scope, one progress line per finished step). Read it again after a compaction or resume, because "an instruction given only in chat can drop out of the compaction summary." (Compaction means the session shortens its own history to save room.)
   - **Delegation:** a blank for which agent does each kind of work, what the session does itself, and which agents commit or push.
   - **Rules:** a blank for rules fixing failures the user named.
 

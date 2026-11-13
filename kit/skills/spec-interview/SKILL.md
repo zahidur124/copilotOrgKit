@@ -1,6 +1,6 @@
 ---
 name: spec-interview
-description: Turn a rough feature idea into a written spec by getting real examples of the result from the user, working out the steps that produce them, and asking the user only what the steps cannot settle, then writing the spec file. Use when the user wants a spec, requirements or a PRD written for a feature, says "interview me" about an idea, or describes a feature too loosely to build from.
+description: Turn a rough feature idea into a written spec by getting real examples of the result from the user, working out the steps that produce them, and asking the user only what the steps cannot settle, then writing the spec file. Use when the user wants a spec, requirements or a PRD written for a feature, or says "interview me" about an idea.
 ---
 
 # spec-interview

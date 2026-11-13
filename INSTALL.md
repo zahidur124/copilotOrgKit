@@ -1,57 +1,100 @@
 # Installing the kit
 
-Two scripts in the repo's root folder copy the kit's files to where Copilot reads them. Use both: one for you, one per repo.
+The kit comes with two install scripts. They copy files to the places Copilot looks for them. Run both: one sets up Copilot for you, the other sets up one repo.
 
-| Script | When | Installs | Where |
+| Script | Run it | What it sets up | Where the files go |
 |---|---|---|---|
-| `python install-user.py` | Once per developer | The working rules, the agents you pick, the skills of the packs you pick | `~/.copilot` (or `$COPILOT_HOME`): `copilot-instructions.md`, `agents/`, `skills/`. Applies in every repo you open; nothing is committed anywhere. |
-| `python install-repo.py <path>` | Once per repo | The safety hook, the agents you pick, the skills and language rules files of the packs you pick, and an `AGENTS.md` | That repo: `.github/hooks/`, `.github/agents/`, `.github/skills/`, `.github/instructions/`, and `AGENTS.md` at its root. You decide whether to commit them. |
+| `install-user.py` | Once, on your computer | Your personal rules, agents and skills | Your Copilot folder, `~/.copilot`. Works in every repo you open. Nothing is committed. |
+| `install-repo.py` | Once for each repo | The repo's notes (`AGENTS.md`), language guides, agents, skills and the safety hook | Inside that repo, in `AGENTS.md` and `.github/`. You decide whether to commit them. |
 
-`install-user.py` never installs the language rules files, because language rules belong to a repo. `install-repo.py` never installs the working rules, because each developer has them from `install-user.py`.
+Language guides go only into repos, because they belong to a repo's code. Your personal rules go only into your Copilot folder, because they are yours.
 
-## Answering the questions
+## What you will see
 
-Each script asks which agents and which packs to install. Answer with Enter for the suggestion, numbers or names such as `1,3`, `all`, or `none`. Enter picks all agents, and:
+Each script lists what it can install and asks you to choose. **If you are unsure, press Enter at every question.** Enter takes the suggested answer.
 
-- **`install-user.py`:** all packs.
-- **`install-repo.py`:** code, documents, planning, and the pack of each stack it finds from the repo's build files. It shows the files it found.
+A shortened example of `install-repo.py`:
+
+```
+$ python install-repo.py ~/code/my-service
+Copilot kit: install into one repository.
+
+Agents in the kit:
+   1. builder              Use when a change is fully specified ...
+   2. data-analyst         Use when a question about a CSV ...
+   ...
+Which agents? Enter for all, numbers or names such as 1,3 for some, or none:     <- press Enter
+
+Packs in the kit:
+   1. code         ...
+   ...
+Which packs? Enter for code, java, documents, planning; or numbers or names such as 1,3; or all; or none:     <- press Enter
+
+Into /Users/you/code/my-service:
+  31 new file(s) to install
+  0 file(s) already up to date
+Install now? [Y/n]     <- press Enter
+
+Done.
+```
+
+Ways to answer the "Which ...?" questions:
+
+- **Enter** takes the suggestion.
+- **Numbers or names**, such as `1,3` or `worker,reader`, pick only those.
+- **`all`** or **`none`**.
+
+What Enter picks:
+
+- **Agents:** all of them.
+- **Packs, in `install-user.py`:** all of them.
+- **Packs, in `install-repo.py`:** code, documents, planning, and the language pack for each language it finds in the repo. It shows the files it used to decide.
 
 ## Packs
 
-A pack is a set of skills and, for a language, its rules file.
+A pack is a bundle of skills for one kind of work. A language pack also adds that language's guide to the repo.
 
-| Pack | Skills | Rules file (repo only) |
+| Pack | Skills | Language guide (repo only) |
 |---|---|---|
-| `code`, for every stack | build-and-test, write-tests, dependency-upgrade, api-contract-check | none |
-| `java` | the code pack's | springboot |
-| `node` | the code pack's | nestjs |
-| `scala` | the code pack's, and sbt-and-play | scala |
+| `code`, for any language | build-and-test, write-tests, dependency-upgrade, api-contract-check | none |
+| `java` | the code pack's | Spring Boot |
+| `node` | the code pack's | NestJS |
+| `scala` | the code pack's, and sbt-and-play | Scala |
 | `python` | the code pack's | none yet |
-| `flutter` | the code pack's | flutter |
+| `flutter` | the code pack's | Flutter |
 | `documents` | read-documents, csv-analysis, pptx, docx, pdf | none |
 | `planning`, for planning and writing | spec-interview, draft-from-examples, session-capture, setup-project | none |
 
-## When a file already exists
+[kit/README.md](kit/README.md) says what each skill does.
 
-- **Agent, skill, rules and hook files.** A file identical to the kit's copy is left alone. A file that differs is replaced only if you say yes when asked, or pass `--update`.
-- **The rules file** (`copilot-instructions.md` for `install-user.py`, `AGENTS.md` for `install-repo.py`). When it differs from the kit's, the script asks whether to merge or overwrite. **Merge**, the default, keeps the file and updates only the section listing which job goes to each installed agent ("Handing work to agents" or "Agents in this repo"). **Overwrite** replaces it with the kit's version, so a repo's `AGENTS.md` goes back to the template with `<placeholders>`.
+## If you have installed before
 
-Every replaced file is kept beside the new one as `<name>.bak`.
+The script compares each file with the kit's copy:
 
-## Flags
+- **Same as the kit:** left alone.
+- **Different** (you edited it, or it is from an older kit): the script asks before replacing it.
 
-Flags answer the questions in advance, for scripts and CI. `--help` lists them.
+Your personal rules (`copilot-instructions.md`) and the repo's notes (`AGENTS.md`) are files you are meant to edit. If yours differs from the kit's, the script asks you to choose:
+
+- **Merge** (the default): keeps your file and updates only the section that lists the installed agents.
+- **Overwrite:** replaces your file with the kit's. For a repo, that means a blank template again.
+
+Whenever a file is replaced, the old one is kept next to it with `.bak` added to its name.
+
+## Running without questions
+
+Add flags to answer the questions in advance, for example in a script or a CI job. Run a script with `--help` to list them.
 
 | Flag | What it does |
 |---|---|
-| `--agents <names>` | Agents to install: names, `all` or `none`. |
-| `--packs <names>` | Packs to install: names, `all` or `none`. |
-| `--skills <names>` | Single skills: names, `all` or `none`. Given alone, it installs only those skills, with no pack and no rules file, and asks no pack question. Given with `--packs`, it adds those skills to the packs' skills. |
-| `--update` | Replaces agent, skill, rules and hook files that differ from the kit's. |
-| `--rules merge` or `--rules overwrite` | Answers the merge-or-overwrite question. Merge is used when it is not answered. |
-| `--yes` | Asks nothing. Installs all agents and the packs Enter would pick, unless another flag says otherwise. |
+| `--agents <names>` | Which agents to install: names, `all` or `none`. |
+| `--packs <names>` | Which packs to install: names, `all` or `none`. |
+| `--skills <names>` | Single skills, by name. On its own, installs only those skills, with no pack and no language guide. With `--packs`, adds them to the packs' skills. |
+| `--update` | Replaces files that differ from the kit's without asking. |
+| `--rules merge` or `--rules overwrite` | Answers the merge-or-overwrite question. Merge is used if you leave it out. |
+| `--yes` | Asks nothing and takes every suggestion, except where another flag says otherwise. |
 
-When the script is not run in a terminal it asks nothing, as with `--yes`.
+A script run outside a terminal (for example by another program) also asks nothing, as with `--yes`.
 
 Examples:
 
